@@ -1,17 +1,39 @@
 import asyncio
-import configparser
 import json
 import re
 from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
+
 import aiohttp
 import fmpsdk
+import pandas as pd
+from dateutil.relativedelta import relativedelta
 from tqdm.asyncio import tqdm
 
-import pandas as pd
+from config import apca_api_secret_key, apca_key_id, fmp_api_key
 
-config = configparser.ConfigParser()
-config.read("api-keys.ini")
+
+def normalize_and_rename(data, symbol):
+    key_mapping = {
+        "c": "Close",
+        "h": "High",
+        "l": "Low",
+        "n": "Volume",
+        "o": "Open",
+        "t": "Datetime",
+        "v": "Volume",
+        "vw": "Volume Weighted Average Price",
+    }
+
+    df = pd.DataFrame(data)
+    normalized_df = pd.json_normalize(df[symbol])
+
+    # Remap the column names
+    normalized_df = normalized_df.rename(columns=key_mapping)
+
+    # Insert the 'Symbol' column as the first column
+    normalized_df.insert(0, "Symbol", symbol)
+
+    return normalized_df
 
 
 async def fetch_data(session, url_parts, symbol, progress_bar=None):
@@ -21,10 +43,12 @@ async def fetch_data(session, url_parts, symbol, progress_bar=None):
         data = await response.json()
         if progress_bar:
             progress_bar.update(1)
+
         try:
-            return data["bars"]
+            data = data["bars"]
+            return normalize_and_rename(data, symbol)
         except KeyError:
-            return None
+            pass
 
 
 async def fetch_and_process(url_parts, symbols, headers, max_concurrent_tasks=5):
@@ -55,14 +79,14 @@ async def fetch_and_process(url_parts, symbols, headers, max_concurrent_tasks=5)
         results = await asyncio.gather(*tasks)
 
         for chunk in results:
-            if chunk:
-                chunks.append(pd.DataFrame.from_records(chunk))
+            chunks.append(chunk)
 
     pbar.close()
+
     # Concatenate all chunks into a single DataFrame
     df = pd.concat(chunks, ignore_index=True)
 
-    return chunks
+    return df
 
 
 def get_dates(
@@ -144,10 +168,6 @@ def get_upcoming_earnings(api_key, from_date, to_date):
 
 
 async def main():
-    fmp_api_key = config["API-KEYS"]["fmp-api-key"]
-    apca_key_id = config["API-KEYS"]["apca-key-id"]
-    apca_api_secret_key = config["API-KEYS"]["apca-api-secret-key"]
-
     from_date, to_date = get_dates(
         init_offset=3, date_window=5, date_window_unit="days", init_unit="days"
     )
@@ -168,15 +188,14 @@ async def main():
         f"&timeframe=1Day&start={from_date_history}&end={to_date_history}&limit=10000&adjustment=raw&feed=sip&sort=asc",
     )
 
-    chunks = await fetch_and_process(url_parts, upcoming_earnings_symbols, headers)
-
-    for df in chunks:
-        with open("output.json", "a") as outfile:
-            # Convert each dataframe to a list of dictionaries
-            df_list = df.to_dict(orient="records")
-
-            # Append the list of dictionaries to the JSON file
-            json.dump(df_list, outfile, indent=4)
+    data = await fetch_and_process(url_parts, upcoming_earnings_symbols, headers)
+    data.to_csv("output.csv", index=False)
+    symbol_data_dict = {
+        symbol: group.drop(columns="Symbol").to_dict(orient="records")
+        for symbol, group in data.groupby("Symbol")
+    }
+    with open("output.json", "w") as f:
+        json.dump(symbol_data_dict, f, indent=4)
 
 
 if __name__ == "__main__":
