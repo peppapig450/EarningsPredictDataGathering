@@ -14,51 +14,55 @@ config = configparser.ConfigParser()
 config.read("api-keys.ini")
 
 
-class AsyncIterator:
-    def __init__(self, items):
-        self.items = items
-        self.index = 0
-
-    def __aiter__(self):
-        return self
-
-    async def __anext__(self):
-        if self.index >= len(self.items):
-            raise StopAsyncIteration
-        item = self.items[self.index]
-        self.index += 1
-        return item
-
-
 async def fetch_data(session, url_parts, symbol, progress_bar=None):
     base_url, rest_of_link = url_parts
     url = f"{base_url}?symbols={symbol}{rest_of_link}"
-    print(url)
     async with session.get(url) as response:
-        data = await response.text()
+        data = await response.json()
         if progress_bar:
             progress_bar.update(1)
-        return data
+        try:
+            return data["bars"]
+        except KeyError:
+            return None
 
 
-async def fetch_and_process(url_parts, symbols, headers):
+async def fetch_and_process(url_parts, symbols, headers, max_concurrent_tasks=5):
     chunks = []
-    iterator = AsyncIterator(symbols)
     total_symbols = len(symbols)
-    with tqdm(total=total_symbols, desc="Fetching and Processing Data") as pbar:
-        async with aiohttp.ClientSession(headers=headers) as session:
-            async for symbol in iterator:
-                chunk = await fetch_data(session, url_parts, symbol, pbar)
-                if chunk:
-                    chunk_data = json.loads(chunk)
-                    if isinstance(chunk_data, list):
-                        chunks.append(pd.DataFrame(chunk_data))
-                    else:
-                        chunks.append(pd.DataFrame([chunk_data]))
+    # Constants
+    max_requests_per_minute = 250
+    max_requests_per_second = max_requests_per_minute / 60
 
+    # Adjust the sleep duration
+    sleep_duration = 1 / (max_requests_per_second * max_concurrent_tasks)
+
+    # Create the async progress bar
+    pbar = tqdm(total=total_symbols, desc="Fetching and Processing Data")
+
+    # Semaphore to limit concurrent tasks
+    semaphore = asyncio.Semaphore(max_concurrent_tasks)
+
+    async with aiohttp.ClientSession(headers=headers) as session:
+
+        async def limited_fetch_data(symbol):
+            async with semaphore:
+                await asyncio.sleep(1)
+                chunk = await fetch_data(session, url_parts, symbol, pbar)
+                return chunk
+
+        tasks = [limited_fetch_data(symbol) for symbol in symbols]
+        results = await asyncio.gather(*tasks)
+
+        for chunk in results:
+            if chunk:
+                chunks.append(pd.DataFrame.from_records(chunk))
+
+    pbar.close()
     # Concatenate all chunks into a single DataFrame
     df = pd.concat(chunks, ignore_index=True)
-    return df
+
+    return chunks
 
 
 def get_dates(
@@ -164,10 +168,15 @@ async def main():
         f"&timeframe=1Day&start={from_date_history}&end={to_date_history}&limit=10000&adjustment=raw&feed=sip&sort=asc",
     )
 
-    df = await fetch_and_process(url_parts, upcoming_earnings_symbols, headers)
+    chunks = await fetch_and_process(url_parts, upcoming_earnings_symbols, headers)
 
-    print(df)
-    df.to_json("output.json", orient="records")
+    for df in chunks:
+        with open("output.json", "a") as outfile:
+            # Convert each dataframe to a list of dictionaries
+            df_list = df.to_dict(orient="records")
+
+            # Append the list of dictionaries to the JSON file
+            json.dump(df_list, outfile, indent=4)
 
 
 if __name__ == "__main__":
