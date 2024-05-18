@@ -167,6 +167,7 @@ def get_upcoming_earnings(api_key, from_date, to_date):
     return filtered_symbols
 
 
+# TODO: perfect async manipulation to ensure no too many request timeouts
 async def main():
     from_date, to_date = get_dates(
         init_offset=3, date_window=5, date_window_unit="days", init_unit="days"
