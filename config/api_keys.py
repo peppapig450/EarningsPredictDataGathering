@@ -32,5 +32,5 @@ class APIKeys:
 
     def __getattribute__(self, name: str):
         if name in ("fmp_api_key", "apca_key_id", "apca_api_secret_key"):
-            return getattr(self, name)
+            return object.__getattribute__(self, name)
         raise AttributeError(f"'APIKeys' object has no attribute '{name}'")
