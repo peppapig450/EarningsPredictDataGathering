@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from config.api_keys import APIKeys
+from data_gathering. import APIKeys
 
 
 class TestAPIKeys(unittest.TestCase):
