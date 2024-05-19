@@ -39,6 +39,7 @@ class Utils:
 
         today = datetime.today()
 
+        # TODO: fix the months and years
         if init_offset is not None:
             if init_unit == "days":
                 offset_delta = timedelta(days=init_offset)
