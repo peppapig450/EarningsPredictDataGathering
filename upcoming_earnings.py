@@ -1,12 +1,10 @@
 import asyncio
 import json
 import re
-from datetime import datetime, timedelta
 
 import aiohttp
 import fmpsdk
 import pandas as pd
-from dateutil.relativedelta import relativedelta
 from tqdm.asyncio import tqdm
 
 from config import apca_api_secret_key, apca_key_id, fmp_api_key
@@ -87,69 +85,6 @@ async def fetch_and_process(url_parts, symbols, headers, max_concurrent_tasks=5)
     df = pd.concat(chunks, ignore_index=True)
 
     return df
-
-
-def get_dates(
-    init_offset=None,
-    date_window=None,
-    init_unit="days",
-    date_window_unit="days",
-):
-    """
-    Calculates dates for earnings data retrieval based on user input.
-
-    Args:
-        init_offset (int, optional): The desired offset from today.
-                                      A positive value adds, negative subtracts.
-                                      Defaults to None.
-        date_window (int, optional): The desired window size between 'from_date' and 'to_date'.
-                                      Defaults to None (same unit as init_offset).
-        init_unit (str, optional): Unit for 'init_offset' (either "days", "weeks", or "quarters).
-                                      Defaults to "days".
-        date_window_unit (str, optional): Unit for 'date_window' (either "days", "weeks", or "quarters).
-                                            Defaults to "days" (same unit as init_offset).
-
-    Returns:
-        tuple: A tuple containing two strings representing the 'from_date'
-               and 'to_date' in YYYY-MM-DD format.
-
-    Raises:
-        ValueError: If 'init_unit' or 'date_window_unit' are not "days", "weeks", or "quarters
-    """
-
-    valid_units = ("days", "weeks", "quarters")
-    if init_unit not in valid_units or date_window_unit not in valid_units:
-        raise ValueError(
-            "init_unit and date_window_unit must be either 'days' or 'weeks', or 'quarters'"
-        )
-
-    today = datetime.today()
-
-    if init_offset is not None:
-        if init_unit == "days":
-            offset_delta = timedelta(days=init_offset)
-        elif init_unit == "weeks":
-            offset_delta = timedelta(weeks=init_offset)
-        elif init_unit == "quarters":
-            offset_delta = relativedelta(months=init_offset * 3)
-
-        from_date_dt = today + offset_delta
-        from_date = from_date_dt.strftime("%Y-%m-%d")
-
-        if date_window is not None:
-            if date_window_unit == "days":
-                window_delta = timedelta(days=date_window)
-            elif date_window_unit == "weeks":
-                window_delta = timedelta(weeks=date_window)
-            elif date_window_unit == "quarters":
-                window_delta = relativedelta(months=date_window * 3)
-        else:
-            window_delta = timedelta(days=5)
-
-        to_date_dt = from_date_dt + window_delta
-        to_date = to_date_dt.strftime("%Y-%m-%d")
-
-    return from_date, to_date
 
 
 def get_upcoming_earnings(api_key, from_date, to_date):
