@@ -3,13 +3,12 @@ import re
 
 
 class Symbol:
+    INTERNATIONAL_SYMBOL_PATTERN = r"\.[A-Z]*$"
+
     def __init__(self, symbol: str):
         self.symbol = symbol
 
     @classmethod
-    def create(cls, symbol_str):
-        return cls(symbol_str)
-
-    @classmethod
-    def filter_international_symbols(cls, symbols):
-        return [symbol for symbol in symbols if not re.search("r\.[A-Z]*$", symbol)]
+    def create(cls, symbol_str: str):
+        if not re.match(cls.INTERNATIONAL_SYMBOL_PATTERN, symbol_str):
+            return cls(symbol_str)
