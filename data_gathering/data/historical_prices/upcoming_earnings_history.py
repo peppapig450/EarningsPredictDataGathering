@@ -14,18 +14,7 @@ class HistoricalData:
         self.to_date = to_date
         self.base_url = "https://data.alpaca.markets/v2/stocks/bars"
         self.rest_of_link = f"&timeframe=1Day&start={self.from_date}&end={self.to_date}&limit=10000&adjustment=raw&feed=sip&sort=asc"
-        self.data = pd.DataFrame(
-            columns=[
-                "Symbol",
-                "Close",
-                "High",
-                "Low",
-                "Volume",
-                "Open",
-                "Datetime",
-                "Volume Weighted Average Price",
-            ]
-        )
+        self.historical_data_by_symbol = {}
 
     def get_headers(self):
         return {
@@ -42,14 +31,17 @@ class HistoricalData:
 
             try:
                 data = data["bars"]
-                return self.normalize_and_rename(data, symbol)
+                return data
             except KeyError:
                 pass
 
     async def fetch_historical_data(self, symbol):
+        await asyncio.sleep(1.05)
         data = await self.fetch_data(symbol)
-        self.data.append(data)
-        return data
+        if data:
+            df = self.normalize_and_rename(data, symbol)
+            self.historical_data_by_symbol[symbol] = df
+            return df
 
     def normalize_and_rename(self, data, symbol):
         key_mapping = {
@@ -77,3 +69,6 @@ class HistoricalData:
         normalized_df.set_index("Datetime", inplace=True)
 
         return normalized_df
+
+    async def close(self):
+        await self.session.close()
