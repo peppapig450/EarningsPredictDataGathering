@@ -40,22 +40,23 @@ class APIKeys:
         self.apca_api_secret_key: str = apca_api_secret_key
 
     @classmethod
-    def from_config_file(cls, config_file_path: Optional[str] = None) -> "APIKeys":
+    def from_config_file(cls, config_file_name: Optional[str] = None) -> "APIKeys":
         """
         Creates an APIKeys instance from a configuration file.
 
         Args:
-            config_file_path (str, optional): Path to the configuration file. If not provided, defaults to "api_keys.ini".
+            config_file_name (str, optional): Path to the configuration file. If not provided, defaults to "api_keys.ini".
 
         Returns:
             APIKeys: An instance of the APIKeys class with keys loaded from the config file.
         """
-        config = configparser.ConfigParser()
+        config_file_name = config_file_name or "api_keys.ini"
+        root_path = os.path.dirname(os.path.abspath(__file__))
+        config_file_path = root_path + "/" + config_file_name
 
-        if config_file_path:
-            config.read(config_file_path)
-        else:
-            config.read("api_keys.ini")
+        config = configparser.ConfigParser()
+        config.read(config_file_path)
+
         return cls(
             fmp_api_key=config["API_KEYS"]["fmp-api-key"],
             finnhub_api_key=config["API_KEYS"]["finnhub-api-key"],
