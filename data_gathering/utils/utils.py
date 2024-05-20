@@ -1,5 +1,7 @@
 # utils.py
+from collections import namedtuple
 from datetime import datetime, timedelta
+
 from dateutil.relativedelta import relativedelta
 
 
@@ -23,12 +25,12 @@ class Utils:
                                                 Defaults to "days" (same unit as init_offset).
 
         Returns:
-            tuple: A tuple containing two strings representing the 'from_date'
-                and 'to_date' in YYYY-MM-DD format.
+            DateRange: A named tuple containing 'from_date' and 'to_date' in YYYY-MM-DD format.
 
         Raises:
             ValueError: If 'init_unit' or 'date_window_unit' are not "days", "weeks", or "quarters
         """
+        DateRange = namedtuple("DateRange", ["from_date", "to_date"])
 
         # ensure input validity
         valid_units = ("days", "weeks", "quarters")
@@ -70,4 +72,4 @@ class Utils:
             to_date_dt = from_date_dt + window_delta
             to_date = to_date_dt.strftime("%Y-%m-%d")
 
-        return from_date, to_date
+        return DateRange(from_date, to_date)
