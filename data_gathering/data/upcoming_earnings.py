@@ -1,6 +1,7 @@
 import fmpsdk
 from data_gathering.models.symbols import Symbol
 from data_gathering.config.api_keys import APIKeys
+from data_gathering.models.upcoming_earning import UpcomingEarning
 
 
 # TODO: associate earnings report date with symbol
@@ -16,6 +17,8 @@ class UpcomingEarnings:
             )
             for earning in upcoming_earnings_list:
                 if symbol := earning.get("symbol"):
-                    yield Symbol.create(symbol)
+                    symbol = Symbol.create(symbol)
+                    if symbol and (earnings_date := earning.get("date")):
+                        yield UpcomingEarning(symbol, earnings_date)
 
         return upcoming_earnings_generator()
