@@ -31,9 +31,6 @@ def test_from_config_file(config_file):
     assert api_keys.apca_key_id == "test_apca_key_id"
     assert api_keys.apca_api_secret_key == "test_apca_api_secret_key"
 
-    with pytest.raises(AttributeError):
-        pass
-
 
 @pytest.mark.parametrize(
     "env_vars",
@@ -56,6 +53,3 @@ def test_from_environment_variables(env_vars, monkeypatch):
     assert api_keys.alpha_vantage_api_key == "test_alpha_vantage_api_key"
     assert api_keys.apca_key_id == "test_apca_key_id"
     assert api_keys.apca_api_secret_key == "test_apca_api_secret_key"
-
-    with pytest.raises(AttributeError):
-        pass
