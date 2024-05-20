@@ -33,6 +33,6 @@ class Symbol:
             Symbol: An instance of the Symbol class if the string does not match the international symbol pattern.
             None: If the string matches the international symbol pattern.
         """
-        if not re.match(cls.INTERNATIONAL_SYMBOL_PATTERN, symbol_str):
+        if not re.search(cls.INTERNATIONAL_SYMBOL_PATTERN, symbol_str):
             return cls(symbol_str)
         return None
