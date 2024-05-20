@@ -3,6 +3,7 @@ from data_gathering.models.symbols import Symbol
 from data_gathering.config.api_keys import APIKeys
 
 
+# TODO: associate earnings report date with symbol
 class UpcomingEarnings:
     def __init__(self):
         api_keys = APIKeys.from_config_file()
