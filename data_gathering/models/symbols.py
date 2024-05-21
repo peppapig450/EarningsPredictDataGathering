@@ -10,7 +10,7 @@ class Symbol:
         symbol (str): The symbol representing a finacial instrument.
     """
 
-    INTERNATIONAL_SYMBOL_PATTERN = r"[-.][A-Z]{2,}$"
+    INTERNATIONAL_SYMBOL_PATTERN = r"[-.][A-Z]+$"
 
     def __init__(self, symbol: str):
         """
