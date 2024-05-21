@@ -1,6 +1,7 @@
 # utils.py
 from collections import namedtuple
 from datetime import datetime, timedelta
+from typing import Optional, Union
 
 from dateutil.relativedelta import relativedelta
 
@@ -8,8 +9,11 @@ from dateutil.relativedelta import relativedelta
 class Utils:
     @staticmethod
     def get_dates(
-        init_offset=None, date_window=None, init_unit="days", date_window_unit="days"
-    ):
+        init_offset: Optional[Union[int, None]] = None,
+        date_window: Optional[Union[int, None]] = None,
+        init_unit: str = "days",
+        date_window_unit: str = "days",
+    ) -> namedtuple:
         """
         Calculates dates for earnings data retrieval based on user input.
 
