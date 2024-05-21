@@ -9,7 +9,7 @@ from data_gathering.config.api_keys import APIKeys
 class HistoricalData:
     CACHE_FILE = "symbols_cache.json"
 
-    def __init__(self, api_keys: APIKeys, from_date, to_date, max_sessions=3) -> None:
+    def __init__(self, api_keys: APIKeys, from_date, to_date) -> None:
         self.apca_key_id = api_keys.__getattribute__("apca_key_id")
         self.apca_api_secret_key = api_keys.__getattribute__("apca_api_secret_key")
         self.from_date = from_date
@@ -114,3 +114,33 @@ class HistoricalData:
         if self.session:
             await self.session.close()
         self.save_cache_to_file()
+
+    def process_historical_data_to_json(self):
+        json_outputs = []
+
+        # loop through the dictionary of dataframes
+        for _, df in self.historical_data_by_symbol.items():
+            # Reset the index to include the datetime in the JSON output
+            df_reset = df.reset_index()
+
+            # remove symbol column
+            if "Symbol" in df.columns:
+                df.drop(columns=["Symbol"])
+            print(df)
+
+            # Convert the Dataframe to JSON
+            json_output = df_reset.to_json(orient="records", date_format="iso")
+            # store the JSOn output in list
+            json_outputs.append(json_output)
+
+        return json_outputs
+
+    def write_json_to_file(self, output_file):
+        # Process the historical data to get JSON outputs
+        json_outputs = self.process_historical_data_to_json()
+
+        # Write the JSON outputs to the file
+        with open(output_file, "w", encoding="utf-8") as file:
+            for json_output in json_outputs:
+                file.write(json_output)
+                file.write("\n")

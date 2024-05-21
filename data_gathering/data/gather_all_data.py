@@ -11,7 +11,7 @@ from .historical_prices.upcoming_earnings_history import HistoricalData
 class DataFetcher:
     def __init__(self):
         self.api_keys = APIKeys.from_config_file()
-        self.semaphore = asyncio.Semaphore(12)
+        self.semaphore = asyncio.Semaphore(4)
 
         # Initialize date ranges
         self.history_dates = DateUtils.get_dates(
@@ -29,7 +29,6 @@ class DataFetcher:
             self.api_keys,
             self.history_dates.from_date,
             self.history_dates.to_date,
-            self.semaphore,
         )
         self.upcoming_earnings = UpcomingEarnings(self.api_keys)
         # self.logger = get_logger(__name__)
@@ -113,4 +112,7 @@ class DataFetcher:
             axis=1,
             keys=historical_data_by_symbol.keys(),
         )
-        print(combined_historical_df)
+
+        # Output to json
+        output_file = "output/output.json"
+        self.historical_data.write_json_to_file(output_file)
