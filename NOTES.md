@@ -18,7 +18,7 @@
 ## Fundamental Metrics:
 + **Collect fundamental metrics for each company, such as:**
     - Earnings per share (EPS)
-    -  Revenue growth rate
+    - Revenue growth rate
     - Profit margin
     - Price-to-earnings (P/E) ratio
     - Debt-to-equity ratio

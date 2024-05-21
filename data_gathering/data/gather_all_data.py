@@ -69,10 +69,6 @@ class DataFetcher:
                     fetch_with_semaphore(symbol, self.fetch_earnings_call_transcripts),
                 )
 
-                # Check if we have processed 50 symbols
-                if len(self.historical_data.historical_data_by_symbol.keys()) >= 5:
-                    break  # Exit the loop
-
             self.process_historical_data(self.historical_data.historical_data_by_symbol)
 
         finally:
@@ -111,7 +107,7 @@ class DataFetcher:
 
     # Define a function to process historical data
     def process_historical_data(self, historical_data_by_symbol):
-        # Concatenate all DataFrames into a single DataFrame, aligned on the datetime index
+        # Concatenate all DataFrames into a single DataFrame, with a multiindex of Datetime and Symbol
         combined_historical_df = pd.concat(
             historical_data_by_symbol.values(),
             keys=historical_data_by_symbol.keys(),
@@ -119,22 +115,3 @@ class DataFetcher:
         )
         combined_historical_df.sort_index(inplace=True)
         print(combined_historical_df.info(verbose=True))
-        json_outputs = []
-        output_file = "output/output.json"
-
-        for symbol, group in combined_historical_df.groupby(level=0):
-            # Reset index for the current group
-            group.reset_index(level="Datetime", inplace=True)
-            print(group.info(verbose=True))
-
-            # Convert the group DataFrame to JSON
-            json_output = group.to_json(orient="records")
-
-            # Append JSON output to the list
-            json_outputs.append(json_output)
-
-        # Write JSON outputs to the file
-        with open(output_file, "w") as file:
-            for json_output in json_outputs:
-                file.write(json_output)
-                file.write("\n")
