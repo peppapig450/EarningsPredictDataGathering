@@ -1,7 +1,8 @@
 import asyncio
 import pandas as pd
+from tqdm.asyncio import tqdm
 from data_gathering.data.upcoming_earnings.get_upcoming_earnings import UpcomingEarnings
-from data_gathering.utils import Utils
+from data_gathering.utils import DateUtils
 from data_gathering.config.api_keys import APIKeys
 
 from .historical_prices.upcoming_earnings_history import HistoricalData
@@ -10,38 +11,47 @@ from .historical_prices.upcoming_earnings_history import HistoricalData
 class DataFetcher:
     def __init__(self):
         self.api_keys = APIKeys.from_config_file()
-        self.semaphore = asyncio.Semaphore(5)
+        self.semaphore = asyncio.Semaphore(10)
 
         # Initialize date ranges
-        self.history_dates = Utils.get_dates(
+        self.history_dates = DateUtils.get_dates(
             init_offset=-4,
             date_window=3,
             init_unit="quarters",
             date_window_unit="quarters",
         )
-        self.upcoming_dates = Utils.get_dates(
+        self.upcoming_dates = DateUtils.get_dates(
             init_offset=3, date_window=5, date_window_unit="days", init_unit="days"
         )
 
         # Instantiate classes
         self.historical_data = HistoricalData(
-            self.api_keys, self.history_dates.from_date, self.history_dates.to_date
+            self.api_keys,
+            self.history_dates.from_date,
+            self.history_dates.to_date,
+            self.semaphore,
         )
         self.upcoming_earnings = UpcomingEarnings(self.api_keys)
+        # self.logger = get_logger(__name__)
 
     async def fetch_all_data(self):
 
         async def fetch_with_semaphore(symbol, func, **kwargs):
             async with self.semaphore:
-                await asyncio.sleep(0.1)
                 await func(symbol, **kwargs)
 
         try:
             # Get upcoming earnings with generator
-            async for upcoming_earning in self.upcoming_earnings.get_upcoming_earnings(
-                self.upcoming_dates.from_date, self.upcoming_dates.to_date
+            async for upcoming_earning in tqdm(
+                self.upcoming_earnings.get_upcoming_earnings(
+                    self.upcoming_dates.from_date, self.upcoming_dates.to_date
+                ),
+                desc="Fetching data",
+                unit=" symbols",
+                leave=False,
             ):
-                symbol = upcoming_earning.symbol
+                symbol = str(upcoming_earning.symbol)
+
                 # Fetch all types of data for the symbol concurrently
                 await asyncio.gather(
                     fetch_with_semaphore(
@@ -62,7 +72,7 @@ class DataFetcher:
 
             self.process_historical_data(self.historical_data.historical_data_by_symbol)
         finally:
-            await self.historical_data.close()
+            await self.historical_data.finish()
 
     async def fetch_historical_data(self, symbol, historical_data):
         await historical_data.fetch_historical_data(symbol)
