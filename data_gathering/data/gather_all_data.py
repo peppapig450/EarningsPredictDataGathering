@@ -11,7 +11,7 @@ from .historical_prices.upcoming_earnings_history import HistoricalData
 class DataFetcher:
     def __init__(self):
         self.api_keys = APIKeys.from_config_file()
-        self.semaphore = asyncio.Semaphore(10)
+        self.semaphore = asyncio.Semaphore(12)
 
         # Initialize date ranges
         self.history_dates = DateUtils.get_dates(
