@@ -6,7 +6,7 @@ from typing import Optional, Union
 from dateutil.relativedelta import relativedelta
 
 
-class Utils:
+class DateUtils:
     @staticmethod
     def get_dates(
         init_offset: Optional[Union[int, None]] = None,
