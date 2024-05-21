@@ -101,9 +101,6 @@ class HistoricalData:
         # Remap the column names
         normalized_df = normalized_df.rename(columns=key_mapping)
 
-        # Insert the 'Symbol' column as the first column
-        normalized_df.insert(0, "Symbol", symbol)
-
         # Set Datetime column as index
         normalized_df["Datetime"] = pd.to_datetime(normalized_df["Datetime"])
         normalized_df.set_index("Datetime", inplace=True)
@@ -114,33 +111,3 @@ class HistoricalData:
         if self.session:
             await self.session.close()
         self.save_cache_to_file()
-
-    def process_historical_data_to_json(self):
-        json_outputs = []
-
-        # loop through the dictionary of dataframes
-        for _, df in self.historical_data_by_symbol.items():
-            # Reset the index to include the datetime in the JSON output
-            df_reset = df.reset_index()
-
-            # remove symbol column
-            if "Symbol" in df.columns:
-                df.drop(columns=["Symbol"])
-            print(df)
-
-            # Convert the Dataframe to JSON
-            json_output = df_reset.to_json(orient="records", date_format="iso")
-            # store the JSOn output in list
-            json_outputs.append(json_output)
-
-        return json_outputs
-
-    def write_json_to_file(self, output_file):
-        # Process the historical data to get JSON outputs
-        json_outputs = self.process_historical_data_to_json()
-
-        # Write the JSON outputs to the file
-        with open(output_file, "w", encoding="utf-8") as file:
-            for json_output in json_outputs:
-                file.write(json_output)
-                file.write("\n")
