@@ -3,23 +3,30 @@ import aiohttp
 import pandas as pd
 import json
 
+from data_gathering.data.gather_all_data import DataFetcher
 from data_gathering.config.api_keys import APIKeys
 
 
 class HistoricalData:
     CACHE_FILE = "symbols_cache.json"
 
-    def __init__(self, api_keys: APIKeys, from_date, to_date) -> None:
+    def __init__(
+        self,
+        api_keys: APIKeys,
+        from_date,
+        to_date,
+        data_fetcher: DataFetcher,
+    ) -> None:
         self.apca_key_id = api_keys.__getattribute__("apca_key_id")
         self.apca_api_secret_key = api_keys.__getattribute__("apca_api_secret_key")
         self.from_date = from_date
         self.to_date = to_date
-        self.semaphore = asyncio.Semaphore(4)
         self.symbols_without_historical_data = self.load_cache_from_file()
         self.base_url = "https://data.alpaca.markets/v2/stocks/bars"
         self.rest_of_link = f"&timeframe=1Day&start={self.from_date}&end={self.to_date}&limit=10000&adjustment=raw&feed=sip&sort=asc"
         self.historical_data_by_symbol = {}
         self.session = None
+        self.data_fetcher = data_fetcher
 
     def load_cache_from_file(self):
         try:
@@ -56,7 +63,7 @@ class HistoricalData:
         url = f"{self.base_url}?symbols={symbol}{self.rest_of_link}"
 
         session = await self.get_session()
-        async with self.semaphore:
+        async with self.data_fetcher.semaphore:
             async with session.get(url) as response:
                 data = await response.json()
 
