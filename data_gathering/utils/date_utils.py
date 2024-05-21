@@ -1,9 +1,11 @@
 # utils.py
 from collections import namedtuple
 from datetime import datetime, timedelta
-from typing import Optional, Union
+from typing import Literal, Optional, Union, NamedTuple
 
 from dateutil.relativedelta import relativedelta
+
+Unit = Literal["days", "weeks", "quarters"]
 
 
 class DateUtils:
@@ -11,9 +13,9 @@ class DateUtils:
     def get_dates(
         init_offset: Optional[Union[int, None]] = None,
         date_window: Optional[Union[int, None]] = None,
-        init_unit: str = "days",
-        date_window_unit: str = "days",
-    ) -> namedtuple:
+        init_unit: Unit = "days",
+        date_window_unit: Unit = "days",
+    ) -> NamedTuple:
         """
         Calculates dates for earnings data retrieval based on user input.
 
@@ -36,11 +38,10 @@ class DateUtils:
         """
         DateRange = namedtuple("DateRange", ["from_date", "to_date"])
 
-        # ensure input validity
-        valid_units = ("days", "weeks", "quarters")
-        if init_unit not in valid_units or date_window_unit not in valid_units:
+        # Improved validity check using type hinting and isinstance
+        if not isinstance(init_unit, Unit) or not isinstance(date_window_unit, Unit):
             raise ValueError(
-                "init_unit and date_window_unit must be either 'days', 'weeks', or 'quarters'"
+                f"init_unit and date_window_unit must be either 'days', 'weeks', or 'quarters'"
             )
 
         today = datetime.today()
