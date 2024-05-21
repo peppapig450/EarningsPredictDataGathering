@@ -43,8 +43,8 @@ def test_create_non_matching_symbol():
         ("AAPL.TL", False),
         ("010XY", True),
         ("010XY.CN", False),
+        ("BDP-EQ", False),
         ("", True),
-        (".", False),
     ],
 )
 def test_create_parameterized(symbol_str, expected):

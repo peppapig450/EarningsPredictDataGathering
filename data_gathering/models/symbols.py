@@ -10,7 +10,7 @@ class Symbol:
         symbol (str): The symbol representing a finacial instrument.
     """
 
-    INTERNATIONAL_SYMBOL_PATTERN = r"\.[A-Z]*$"
+    INTERNATIONAL_SYMBOL_PATTERN = r"[-.][A-Z]{2,}$"
 
     def __init__(self, symbol: str):
         """
@@ -20,6 +20,15 @@ class Symbol:
             symbol (str): The symbol representing a financial instrument.
         """
         self.symbol: str = symbol
+
+    def __str__(self) -> str:
+        """
+        Returns the symbol as a string representation of the Symbol instance.
+
+        Returns:
+            str: The symbol as a string.
+        """
+        return self.symbol
 
     @classmethod
     def create(cls, symbol_str: str) -> "Symbol":
