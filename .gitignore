@@ -165,3 +165,4 @@ test.py
 upcoming_earnings_old.py
 config.py
 efficiency.py
+*.prof
