@@ -3,7 +3,6 @@ import aiohttp
 import pandas as pd
 import json
 
-from data_gathering.data.gather_all_data import DataFetcher
 from data_gathering.config.api_keys import APIKeys
 
 
@@ -15,7 +14,7 @@ class HistoricalData:
         api_keys: APIKeys,
         from_date,
         to_date,
-        data_fetcher: DataFetcher,
+        data_fetcher,
     ) -> None:
         self.apca_key_id = api_keys.__getattribute__("apca_key_id")
         self.apca_api_secret_key = api_keys.__getattribute__("apca_api_secret_key")

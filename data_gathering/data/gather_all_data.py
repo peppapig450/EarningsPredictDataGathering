@@ -29,6 +29,7 @@ class DataFetcher:
             self.api_keys,
             self.history_dates.from_date,
             self.history_dates.to_date,
+            self,
         )
         self.upcoming_earnings = UpcomingEarnings(self.api_keys)
         # self.logger = get_logger(__name__)
@@ -113,5 +114,24 @@ class DataFetcher:
             keys=historical_data_by_symbol.keys(),
             names=["Symbol", "Datetime"],
         )
-        combined_historical_df.sort_index(inplace=True)
-        print(combined_historical_df.info(verbose=True))
+        grouped = (
+            combined_historical_df.groupby(["Symbol", "Datetime"])
+            .apply(
+                lambda x: x[
+                    [
+                        "Close",
+                        "High",
+                        "Low",
+                        "Volume",
+                        "Open",
+                        "Volume",
+                        "Volume Weighted Average Price",
+                    ]
+                ].to_dict(orient="records")
+            )
+            .reset_index(name="data")
+        )
+
+        grouped.groupby("Symbol").apply(
+            lambda x: x.set_index("Datetime")["data"].to_dict()
+        ).to_json("output/output.json", date_format="iso")
