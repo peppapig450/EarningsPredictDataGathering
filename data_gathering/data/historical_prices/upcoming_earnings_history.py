@@ -1,7 +1,8 @@
 import asyncio
+import json
+
 import aiohttp
 import pandas as pd
-import json
 
 from data_gathering.config.api_keys import APIKeys
 
