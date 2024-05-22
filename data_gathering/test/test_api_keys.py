@@ -6,7 +6,7 @@ from data_gathering.config.api_keys import APIKeys
 
 @pytest.fixture
 def config_file(tmp_path):
-    config_file_path = tmp_path / "test_config.ini"
+    config_file_path = os.path.join(tmp_path, "test_config.ini")
 
     config_content = """
     [API_KEYS]
