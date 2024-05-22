@@ -38,6 +38,12 @@ class DateUtils:
         """
         DateRange = namedtuple("DateRange", ["from_date", "to_date"])
 
+        if init_offset is None:
+            init_offset = 1
+
+        if date_window is None:
+            date_window = 1
+
         valid_units = ("days", "weeks", "quarters")
         # Improved validity check using type hinting and isinstance
         if init_unit not in valid_units or date_window_unit not in valid_units:
