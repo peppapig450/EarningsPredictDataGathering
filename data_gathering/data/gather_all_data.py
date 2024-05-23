@@ -1,15 +1,17 @@
 import asyncio
 import json
+
 import pandas as pd
 from tqdm.asyncio import tqdm
+
+from data_gathering.config.api_keys import APIKeys
 from data_gathering.data.upcoming_earnings.get_upcoming_earnings import UpcomingEarnings
 from data_gathering.utils import DateUtils
-from data_gathering.config.api_keys import APIKeys
+from data_gathering.utils.output_utils.historical_data.historical_data_output_utils import (
+    HistoricalDataOutputUtils as hdou,
+)
 
 from .historical_prices.upcoming_earnings_history import HistoricalData
-from data_gathering.utils.output_utils.historical_data.historical_data_output_utils import (
-    HistoricalDataOutputUtils,
-)
 
 
 class DataFetcher:
@@ -31,6 +33,7 @@ class DataFetcher:
         # TODO: later add config option for this
         self.historical_symbols_json = {}
         self.hist_json = True
+        self.hist_parquet = True
 
         # Instantiate classes
         self.historical_data = HistoricalData(
@@ -123,14 +126,22 @@ class DataFetcher:
     # Define a function to process historical data
     async def process_historical_data(self):
         # Concatenate all DataFrames into a single DataFrame, with a multiindex of Datetime and Symbol
-        combined_historical_df = HistoricalDataOutputUtils.combine_symbol_dataframes(
+        combined_historical_df = hdou.combine_symbol_dataframes(
             self.historical_data.historical_data_by_symbol
         )
-        combined_historical_df.to_pickle("output/output_dataframe.pkl")
 
-        # combined_historical_df.to_parquet(
-        #    "output/historical_data.parquet", compression="zstd", engine="pyarrow"
-        # )
+        # pickle for testing
+        # combined_historical_df.to_pickle("output/output_dataframe.pkl")
+
+        if self.hist_json:
+            hdou.output_combined_symbol_df_to_json(
+                combined_historical_df, "output.json"
+            )
+
+        if self.hist_parquet:
+            combined_historical_df.to_parquet(
+                "output/historical_data.parquet", compression="zstd", engine="pyarrow"
+            )
 
     async def write_json_files(self):
         # Serialize all JSON data
@@ -138,7 +149,5 @@ class DataFetcher:
 
         # Iterate over symbol JSON data and write to files
         output_file = "output/output_symbols.json"
-        with open(output_file, "w") as file:
+        with open(output_file, "w", encoding="utf-8") as file:
             file.write(all_json_data)
-
-    # async def process_and_stream_json
