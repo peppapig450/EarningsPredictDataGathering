@@ -11,4 +11,4 @@
 ## Research for Data Analysis program
 - [] Explore Parquet for data output for time series
 - [] Combination of parquet and Sql
-- [] Julia, Scala, or Clojure for actual analysis program
+- [] Julia, ~~Scala, or Clojure~~ for actual analysis program

@@ -83,7 +83,10 @@ class DataFetcher:
                     fetch_with_semaphore(symbol, self.fetch_earnings_call_transcripts),
                 )
 
-                await self.process_historical_data()
+                if len(self.historical_data.historical_data_by_symbol) >= 150:
+                    break
+
+            await self.process_historical_data()
 
         finally:
 

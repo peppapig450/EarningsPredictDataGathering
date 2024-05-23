@@ -55,7 +55,7 @@ class HistoricalDataOutputUtils(OutputUtils):
             "Number of Trades",
             "Open",
             "Volume",
-            "Volume Weighted Average Price",
+            "VWAP",
         ]
 
         # Creating a new column 'data' with the relevant data

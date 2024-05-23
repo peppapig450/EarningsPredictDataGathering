@@ -19,7 +19,7 @@ class HistoricalData:
     ) -> None:
         self.apca_key_id = api_keys.__getattribute__("apca_key_id")
         self.apca_api_secret_key = api_keys.__getattribute__("apca_api_secret_key")
-        self.from_date = from_date
+        self.from_date = "1983-01-01"
         self.to_date = to_date
         self.symbols_without_historical_data = self.load_cache_from_file()
         self.base_url = "https://data.alpaca.markets/v2/stocks/bars"
@@ -99,7 +99,7 @@ class HistoricalData:
             "o": "Open",
             "t": "Datetime",
             "v": "Volume",
-            "vw": "Volume Weighted Average Price",
+            "vw": "VWAP",
         }
 
         df = pd.DataFrame(data)
