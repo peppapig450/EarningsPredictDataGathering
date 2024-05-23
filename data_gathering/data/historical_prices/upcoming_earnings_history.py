@@ -95,7 +95,7 @@ class HistoricalData:
             "c": "Close",
             "h": "High",
             "l": "Low",
-            "n": "Volume",
+            "n": "Number of Trades",
             "o": "Open",
             "t": "Datetime",
             "v": "Volume",

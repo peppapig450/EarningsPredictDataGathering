@@ -1,4 +1,5 @@
 import asyncio
+import json
 import pandas as pd
 from tqdm.asyncio import tqdm
 from data_gathering.data.upcoming_earnings.get_upcoming_earnings import UpcomingEarnings
@@ -6,6 +7,9 @@ from data_gathering.utils import DateUtils
 from data_gathering.config.api_keys import APIKeys
 
 from .historical_prices.upcoming_earnings_history import HistoricalData
+from data_gathering.utils.output_utils.historical_data.historical_data_output_utils import (
+    HistoricalDataOutputUtils,
+)
 
 
 class DataFetcher:
@@ -23,6 +27,10 @@ class DataFetcher:
         self.upcoming_dates = DateUtils.get_dates(
             init_offset=3, date_window=5, date_window_unit="days", init_unit="days"
         )
+
+        # TODO: later add config option for this
+        self.historical_symbols_json = {}
+        self.hist_json = True
 
         # Instantiate classes
         self.historical_data = HistoricalData(
@@ -51,6 +59,8 @@ class DataFetcher:
                 leave=False,
             ):
                 symbol = str(upcoming_earning.symbol)
+                if symbol in self.historical_data.symbols_without_historical_data:
+                    continue
 
                 # Fetch all types of data for the symbol concurrently
                 await asyncio.gather(
@@ -70,13 +80,17 @@ class DataFetcher:
                     fetch_with_semaphore(symbol, self.fetch_earnings_call_transcripts),
                 )
 
-            self.process_historical_data(self.historical_data.historical_data_by_symbol)
+                await self.process_historical_data()
 
         finally:
+
             await self.historical_data.finish()
+            # if self.hist_json:
+            #    await self.write_json_files()
 
     async def fetch_historical_data(self, symbol, historical_data):
         await historical_data.fetch_historical_data(symbol)
+        # await self.process_historical_data(symbol, symbol_historical_data)
 
     async def fetch_fundamental_metrics(self, symbol):
         # Fetch fundamental metrics data and process it
@@ -107,31 +121,24 @@ class DataFetcher:
         pass
 
     # Define a function to process historical data
-    def process_historical_data(self, historical_data_by_symbol):
+    async def process_historical_data(self):
         # Concatenate all DataFrames into a single DataFrame, with a multiindex of Datetime and Symbol
-        combined_historical_df = pd.concat(
-            historical_data_by_symbol.values(),
-            keys=historical_data_by_symbol.keys(),
-            names=["Symbol", "Datetime"],
+        combined_historical_df = HistoricalDataOutputUtils.combine_symbol_dataframes(
+            self.historical_data.historical_data_by_symbol
         )
-        grouped = (
-            combined_historical_df.groupby(["Symbol", "Datetime"])
-            .apply(
-                lambda x: x[
-                    [
-                        "Close",
-                        "High",
-                        "Low",
-                        "Volume",
-                        "Open",
-                        "Volume",
-                        "Volume Weighted Average Price",
-                    ]
-                ].to_dict(orient="records")
-            )
-            .reset_index(name="data")
-        )
+        combined_historical_df.to_pickle("output/output_dataframe.pkl")
 
-        grouped.groupby("Symbol").apply(
-            lambda x: x.set_index("Datetime")["data"].to_dict()
-        ).to_json("output/output.json", date_format="iso")
+        # combined_historical_df.to_parquet(
+        #    "output/historical_data.parquet", compression="zstd", engine="pyarrow"
+        # )
+
+    async def write_json_files(self):
+        # Serialize all JSON data
+        all_json_data = json.dumps(self.historical_symbols_json)
+
+        # Iterate over symbol JSON data and write to files
+        output_file = "output/output_symbols.json"
+        with open(output_file, "w") as file:
+            file.write(all_json_data)
+
+    # async def process_and_stream_json
