@@ -62,6 +62,6 @@ class HistoricalDataOutputUtils(OutputUtils):
             .to_json(date_format="iso")
         )
 
-    output_file = os.path.join("output", output_filename)
-    with open(output_file, "w", encoding="utf-8") as file:
-        file.write(output_file)
+        output_file = os.path.join("output", output_filename)
+        with open(output_file, "w", encoding="utf-8") as file:
+            file.write(output_file)
