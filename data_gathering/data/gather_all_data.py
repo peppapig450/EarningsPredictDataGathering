@@ -32,7 +32,7 @@ class DataFetcher:
 
         # TODO: later add config option for this
         self.historical_symbols_json = {}
-        self.hist_json = True
+        self.hist_json = False
         self.hist_parquet = True
 
         # Instantiate classes
@@ -145,12 +145,3 @@ class DataFetcher:
             combined_historical_df.to_parquet(
                 "output/historical_data.parquet", compression="zstd", engine="pyarrow"
             )
-
-    async def write_json_files(self):
-        # Serialize all JSON data
-        all_json_data = json.dumps(self.historical_symbols_json)
-
-        # Iterate over symbol JSON data and write to files
-        output_file = "output/output_symbols.json"
-        with open(output_file, "w", encoding="utf-8") as file:
-            file.write(all_json_data)
