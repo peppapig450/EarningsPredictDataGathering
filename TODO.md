@@ -5,8 +5,10 @@
 - [] Write tests for those files too
 - [] Data verification for python
   - Potentially make sure that stocks gathered by fmpsdk are valid before we loop (Symbols class)
-- [X] improve caching so that all the fetch methods in gather_all_data use it
-- [] Setup command line input or <ins>config file reading</ins>
+- [] improve caching so that all the fetch methods in gather_all_data use it
+  - Use sqlite and sets, bitwise comparison is fast
+- [] Setup <ins>config file reading</ins>
+- [] Use alpaca python api (figure out how to get working asynchronously)
 
 ## Research for Data Analysis program
 - [] Explore Parquet for data output for time series
