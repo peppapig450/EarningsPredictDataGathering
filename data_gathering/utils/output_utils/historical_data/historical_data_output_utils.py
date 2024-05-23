@@ -36,32 +36,32 @@ class HistoricalDataOutputUtils(OutputUtils):
 
         return combined_historical_data_df
 
+    # TODO: maybe rewrite so it works for any dataframe
     @staticmethod
-    def output_combined_symbol_df_to_json(combined_dataframe, output_filename):
-        grouped_df = (
-            combined_dataframe.groupby(["Symbols", "Dataframe"])
-            .apply(
-                lambda x: x[
-                    [
-                        "Close",
-                        "High",
-                        "Low",
-                        "Number of Trades",
-                        "Open",
-                        "Volume",
-                        "Volume Weighted Average Price",
-                    ]
-                ].to_dict(orient="records")
-            )
-            .reset_index(name="data")
+    def output_combined_symbol_df_to_json(combined_df: pd.DataFrame, output_filename):
+        # Creating output file path
+        output_filepath = os.path.join("output", output_filename)
+
+        # Selecting the columns of interest
+        selected_columns = [
+            "Close",
+            "High",
+            "Low",
+            "Number of Trades",
+            "Open",
+            "Volume",
+            "Volume Weighted Average Price",
+        ]
+
+        # Creating a new column 'data' with the relevant data
+        combined_df["data"] = combined_df[selected_columns].to_dict(orient="records")
+
+        # Grouping by 'Symbol' and 'Datetime' and creating nested dictionary directly
+        nested_dict = (
+            combined_df.groupby("Symbol")
+            .apply(lambda x: x.groupby("Datetime")["data"].apply(list).to_dict())
+            .to_dict()
         )
 
-        return (
-            grouped_df.groupby("Symbol")
-            .apply(lambda x: x.set_index("Datetime")["data"].to_dict)
-            .to_json(date_format="iso")
-        )
-
-        output_file = os.path.join("output", output_filename)
-        with open(output_file, "w", encoding="utf-8") as file:
-            file.write(output_file)
+        # Converting the final result to JSON with the ISO date format
+        return pd.Series(nested_dict).to_json(output_filepath, date_format="iso")
