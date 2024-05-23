@@ -79,6 +79,8 @@ class HistoricalData:
                     # Add symbol to the cache if historical data retrieval fails
                     return None
 
+    # TODO: Modify fetch_historical_data to return an Async Generator to use chunks
+    # Json normalize taking way too long
     async def fetch_historical_data(self, symbol):
         if symbol in self.symbols_without_historical_data:
             return None
@@ -103,6 +105,7 @@ class HistoricalData:
         }
 
         df = pd.DataFrame(data)
+        # TODO: way too slow
         normalized_df = pd.json_normalize(df[symbol])
 
         # Remap the column names

@@ -27,11 +27,10 @@ class DataFetcher:
             date_window_unit="quarters",
         )
         self.upcoming_dates = DateUtils.get_dates(
-            init_offset=3, date_window=5, date_window_unit="days", init_unit="days"
+            init_offset=1, date_window=14, date_window_unit="days", init_unit="days"
         )
 
         # TODO: later add config option for this
-        self.historical_symbols_json = {}
         self.hist_json = False
         self.hist_parquet = True
 
@@ -83,9 +82,6 @@ class DataFetcher:
                     fetch_with_semaphore(symbol, self.fetch_earnings_call_transcripts),
                 )
 
-                if len(self.historical_data.historical_data_by_symbol) >= 150:
-                    break
-
             await self.process_historical_data()
 
         finally:
@@ -132,6 +128,7 @@ class DataFetcher:
         combined_historical_df = hdou.combine_symbol_dataframes(
             self.historical_data.historical_data_by_symbol
         )
+        print(combined_historical_df.info(verbose=True))
 
         # pickle for testing
         # combined_historical_df.to_pickle("output/output_dataframe.pkl")
