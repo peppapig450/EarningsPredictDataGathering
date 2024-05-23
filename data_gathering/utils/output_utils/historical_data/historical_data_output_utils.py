@@ -1,6 +1,8 @@
+import os
 from data_gathering.utils.output import OutputUtils
 import pandas as pd
 from typing import Dict
+import json
 
 
 class HistoricalDataOutputUtils(OutputUtils):
@@ -33,3 +35,33 @@ class HistoricalDataOutputUtils(OutputUtils):
         )
 
         return combined_historical_data_df
+
+    @staticmethod
+    def output_combined_symbol_df_to_json(combined_dataframe, output_filename):
+        grouped_df = (
+            combined_dataframe.groupby(["Symbols", "Dataframe"])
+            .apply(
+                lambda x: x[
+                    [
+                        "Close",
+                        "High",
+                        "Low",
+                        "Number of Trades",
+                        "Open",
+                        "Volume",
+                        "Volume Weighted Average Price",
+                    ]
+                ].to_dict(orient="records")
+            )
+            .reset_index(name="data")
+        )
+
+        return (
+            grouped_df.groupby("Symbol")
+            .apply(lambda x: x.set_index("Datetime")["data"].to_dict)
+            .to_json(date_format="iso")
+        )
+
+    output_file = os.path.join("output", output_filename)
+    with open(output_file, "w", encoding="utf-8") as file:
+        file.write(output_file)
