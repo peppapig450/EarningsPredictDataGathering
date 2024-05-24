@@ -3,7 +3,6 @@ import json
 
 import aiohttp
 import pandas as pd
-from data_gathering.utils.cache.symbols_blacklist import BlacklistSymbolCache
 from data_gathering.config.api_keys import APIKeys
 
 
@@ -13,13 +12,14 @@ class HistoricalData:
         api_keys: APIKeys,
         from_date,
         to_date,
+        cache,
         data_fetcher,
     ) -> None:
         self.apca_key_id = api_keys.__getattribute__("apca_key_id")
         self.apca_api_secret_key = api_keys.__getattribute__("apca_api_secret_key")
         self.from_date = "1983-01-01"
         self.to_date = to_date
-        self.cache = BlacklistSymbolCache()
+        self.cache = cache
         self.base_url = "https://data.alpaca.markets/v2/stocks/bars"
         self.rest_of_link = f"&timeframe=1Day&start={self.from_date}&end={self.to_date}&limit=10000&adjustment=raw&feed=sip&sort=asc"
         self.historical_data_by_symbol = {}
@@ -100,4 +100,4 @@ class HistoricalData:
     async def finish(self):
         if self.session:
             await self.session.close()
-        self.cache.save_blacklist_to_pickle()()
+        self.cache.save_blacklist_to_pickle()

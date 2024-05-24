@@ -10,6 +10,7 @@ from data_gathering.utils import DateUtils
 from data_gathering.utils.output_utils.historical_data.historical_data_output_utils import (
     HistoricalDataOutputUtils as hdou,
 )
+from data_gathering.utils.cache.symbols_blacklist import BlacklistSymbolCache
 
 from .historical_prices.upcoming_earnings_history import HistoricalData
 
@@ -18,6 +19,7 @@ class DataFetcher:
     def __init__(self):
         self.api_keys = APIKeys.from_config_file()
         self.semaphore = asyncio.Semaphore(4)
+        self.cache = BlacklistSymbolCache()
 
         # Initialize date ranges
         self.history_dates = DateUtils.get_dates(
@@ -39,10 +41,10 @@ class DataFetcher:
             self.api_keys,
             self.history_dates.from_date,
             self.history_dates.to_date,
+            self.cache,
             self,
         )
-        self.upcoming_earnings = UpcomingEarnings(self.api_keys)
-        # self.logger = get_logger(__name__)
+        self.upcoming_earnings = UpcomingEarnings(self.api_keys, self.cache)
 
     async def fetch_all_data(self):
 
@@ -61,8 +63,6 @@ class DataFetcher:
                 leave=False,
             ):
                 symbol = str(upcoming_earning.symbol)
-                if symbol in self.historical_data.symbols_without_historical_data:
-                    continue
 
                 # Fetch all types of data for the symbol concurrently
                 await asyncio.gather(

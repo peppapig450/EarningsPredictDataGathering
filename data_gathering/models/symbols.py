@@ -2,6 +2,7 @@
 import re
 
 
+# TODO: maybe associate gathered data types with the Symbol class
 class Symbol:
     """
     A class to represent a finacial instrument.

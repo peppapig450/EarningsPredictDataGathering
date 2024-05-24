@@ -1,6 +1,7 @@
 # TODO
 
 ## Actual TODO in program
+- [] Rewrite the program to use multiprocessing and asyncio to process data
 - [] Improve type hinting and add documentation for gather_all_data and upcoming_earnings_history + any other file
 - [] Write tests for those files too
 - [] Data verification for python

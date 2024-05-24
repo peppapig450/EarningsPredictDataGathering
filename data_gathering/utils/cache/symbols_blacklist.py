@@ -1,6 +1,7 @@
-from .cache import Cache
-import pickle
 import os
+import pickle
+
+from .cache import Cache
 
 
 class BlacklistSymbolCache(Cache):
@@ -16,8 +17,10 @@ class BlacklistSymbolCache(Cache):
             if not os.path.exists(self.default_pickle_file):
                 self._create_default_blacklist()
             self.load_blacklist_from_pickle(self.default_pickle_file)
+
             if blacklist_symbols:
                 self.blacklist = self.blacklist | frozenset(blacklist_symbols)
+
             self.new_symbols = set()
 
     def _create_default_blacklist(self):
@@ -29,7 +32,7 @@ class BlacklistSymbolCache(Cache):
             self.blacklist = pickle.load(file)
         self.new_symbols = set()
 
-    def save_blacklist_to_pickle(self, file_path):
+    def save_blacklist_to_pickle(self, file_path=None):
         file_path = file_path or self.default_pickle_file
         with open(file_path, "wb") as file:
             new_blacklist = self.blacklist | self.new_symbols
