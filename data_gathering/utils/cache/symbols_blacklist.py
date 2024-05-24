@@ -30,6 +30,7 @@ class BlacklistSymbolCache(Cache):
         self.new_symbols = set()
 
     def save_blacklist_to_pickle(self, file_path):
+        file_path = file_path or self.default_pickle_file
         with open(file_path, "wb") as file:
             new_blacklist = self.blacklist | self.new_symbols
             pickle.dump(new_blacklist, file)

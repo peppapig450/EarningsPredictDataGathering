@@ -3,13 +3,11 @@ import json
 
 import aiohttp
 import pandas as pd
-
+from data_gathering.utils.cache.symbols_blacklist import BlacklistSymbolCache
 from data_gathering.config.api_keys import APIKeys
 
 
 class HistoricalData:
-    CACHE_FILE = "symbols_cache.json"
-
     def __init__(
         self,
         api_keys: APIKeys,
@@ -21,27 +19,12 @@ class HistoricalData:
         self.apca_api_secret_key = api_keys.__getattribute__("apca_api_secret_key")
         self.from_date = "1983-01-01"
         self.to_date = to_date
-        self.symbols_without_historical_data = self.load_cache_from_file()
+        self.cache = BlacklistSymbolCache()
         self.base_url = "https://data.alpaca.markets/v2/stocks/bars"
         self.rest_of_link = f"&timeframe=1Day&start={self.from_date}&end={self.to_date}&limit=10000&adjustment=raw&feed=sip&sort=asc"
         self.historical_data_by_symbol = {}
         self.session = None
         self.data_fetcher = data_fetcher
-
-    def load_cache_from_file(self):
-        try:
-            with open(self.CACHE_FILE, "r") as file:
-                return set(json.load(file))
-        except FileNotFoundError:
-            return set()
-
-    def save_cache_to_file(self):
-        existing_cache = self.load_cache_from_file()  # Load existing cache
-        updated_cache = existing_cache.union(self.symbols_without_historical_data)
-        with open(
-            self.CACHE_FILE, "w"
-        ) as file:  # Open in "w" mode to overwrite existing contents
-            json.dump(list(updated_cache), file)
 
     def get_headers(self):
         return {
@@ -69,7 +52,7 @@ class HistoricalData:
 
                 if "bars" not in data or not data["bars"]:
                     # Add symbol to the cache if historical data is empty
-                    self.symbols_without_historical_data.add(symbol)
+                    self.cache.add_symbol(symbol)
                     return None
 
                 try:
@@ -82,9 +65,6 @@ class HistoricalData:
     # TODO: Modify fetch_historical_data to return an Async Generator to use chunks
     # Json normalize taking way too long
     async def fetch_historical_data(self, symbol):
-        if symbol in self.symbols_without_historical_data:
-            return None
-
         await asyncio.sleep(0.3)
         data = await self.fetch_data(symbol)
         if data:
@@ -120,4 +100,4 @@ class HistoricalData:
     async def finish(self):
         if self.session:
             await self.session.close()
-        self.save_cache_to_file()
+        self.cache.save_blacklist_to_pickle()()
