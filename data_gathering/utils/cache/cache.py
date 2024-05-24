@@ -7,7 +7,10 @@ import os
 class Cache:
     # future sqlite integration for actual caching
     def __init__(self, cache_dir=None, blacklist_symbols=None) -> None:
-        self.cache_dir = cache_dir or self._get_root_directory()
+        self.cache_dir = cache_dir or os.path.join(self._get_root_directory(), ".cache")
+        if not os.path.exists(self.cache_dir):
+            os.makedirs(self.cache_dir)
+        self.blacklist_symbols = blacklist_symbols
         self.blacklist_symbols = blacklist_symbols
 
     def _get_root_directory(self):
@@ -20,7 +23,7 @@ class Cache:
         with open(file_path, "wb") as file:
             pickle.dump(self, file)
 
-    @classmethod
-    def load_from_pickle(cls, file_path):
+    def load_from_pickle(self, file_path):
         with open(file_path, "rb") as file:
-            return pickle.load(file)
+            data = pickle.load(file)
+            return data
