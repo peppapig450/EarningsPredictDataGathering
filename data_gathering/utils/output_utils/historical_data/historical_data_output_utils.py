@@ -3,6 +3,7 @@ from data_gathering.utils.output import OutputUtils
 import pandas as pd
 from typing import Dict
 import json
+import itertools
 
 
 class HistoricalDataOutputUtils(OutputUtils):
@@ -35,6 +36,20 @@ class HistoricalDataOutputUtils(OutputUtils):
         )
 
         return combined_historical_data_df
+
+    @staticmethod
+    def combine_dataframes(historical_data_by_symbols):
+        data_list = list(
+            itertools.chain.from_iterable(historical_data_by_symbols.values())
+        )
+        df = pd.DataFrame(data_list)
+        # set multi-level index
+        # level=0 -symbol
+        # level-1 -timestamp
+        if set(["symbol", "timestamp"]).issubset(df.columns):
+            df["timestamp"] = pd.to_datetime(df["timestamp"])
+            df.set_index(["symbol", "timestamp"], inplace=True)
+        return df
 
     # TODO: maybe rewrite so it works for any dataframe
     @staticmethod
