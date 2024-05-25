@@ -89,7 +89,7 @@ class HistoricalData:
         response_data[symbol] = new_data
 
     def format_data(self, response_data, data_by_symbol: defaultdict):
-        # format the data into the default dict
+        # format the data into the defaultdict
         [
             (
                 data_by_symbol[symbol].extend(data)
