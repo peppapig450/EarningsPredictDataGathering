@@ -4,7 +4,7 @@ import json
 import aiohttp
 import pandas as pd
 from data_gathering.config.api_keys import APIKeys
-
+from data_gathering.models.mappings import *
 
 class HistoricalData:
     def __init__(
@@ -24,6 +24,7 @@ class HistoricalData:
         self.rest_of_link = f"&timeframe=1Day&start={self.from_date}&end={self.to_date}&limit=10000&adjustment=raw&feed=sip&sort=asc"
         self.historical_data_by_symbol = {}
         self.session = None
+        self.mapping = historical_data_mapping
         self.data_fetcher = data_fetcher
 
     def get_headers(self):
@@ -48,7 +49,8 @@ class HistoricalData:
         session = await self.get_session()
         async with self.data_fetcher.semaphore:
             async with session.get(url) as response:
-                data = await response.json()
+                data = await response.text
+                print(type(data))
 
                 if "bars" not in data or not data["bars"]:
                     # Add symbol to the cache if historical data is empty
@@ -68,28 +70,13 @@ class HistoricalData:
         await asyncio.sleep(0.3)
         data = await self.fetch_data(symbol)
         if data:
-            df = self.normalize_and_rename(data, symbol)
-            self.historical_data_by_symbol[symbol] = df
-            return df
+            self.historical_data_by_symbol[symbol] = data
 
     def normalize_and_rename(self, data, symbol):
-        key_mapping = {
-            "c": "Close",
-            "h": "High",
-            "l": "Low",
-            "n": "Number of Trades",
-            "o": "Open",
-            "t": "Datetime",
-            "v": "Volume",
-            "vw": "VWAP",
-        }
 
         df = pd.DataFrame(data)
-        # TODO: way too slow
-        normalized_df = pd.json_normalize(df[symbol])
-
         # Remap the column names
-        normalized_df = normalized_df.rename(columns=key_mapping)
+        normalized_df = normalized_df.rename(columns=self.mapping)
 
         # Set Datetime column as index
         normalized_df["Datetime"] = pd.to_datetime(normalized_df["Datetime"])
