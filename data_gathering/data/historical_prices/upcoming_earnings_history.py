@@ -3,8 +3,9 @@ import json
 
 import aiohttp
 import pandas as pd
+from typing import Dict, List, Any
 from data_gathering.config.api_keys import APIKeys
-from data_gathering.models.mappings import *
+from data_gathering.models.mappings import historical_data_mapping
 from collections import defaultdict
 
 
@@ -71,9 +72,24 @@ class HistoricalData:
         await asyncio.sleep(0.3)
         data = await self.fetch_data(symbol)
         if data:
+            self.rename_columns(symbol, data)
             self.format_data(data, self.data_by_symbol)
 
+    def rename_columns(self, symbol, response_data: Dict[str, List[Any]]):
+        # rename all columns using the mapping and add the symbol category
+        new_data = [
+            {
+                historical_data_mapping[key]: val
+                for key, val in bar.items()
+                if key in historical_data_mapping
+            }
+            | {"symbol": symbol}
+            for bar in response_data[symbol]
+        ]
+        response_data[symbol] = new_data
+
     def format_data(self, response_data, data_by_symbol: defaultdict):
+        # format the data into the default dict
         [
             (
                 data_by_symbol[symbol].extend(data)
