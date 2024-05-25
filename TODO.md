@@ -1,8 +1,10 @@
 # TODO
 
 ## Actual TODO in program
-- [] no longer create a dataframe for each symbol, instead manipulate the dictionaries with list/dictionary comphrension
 - [] Rewrite the program to use multiprocessing and asyncio to process data
+- [] Async iterator instead of generator
+
+- [X] no longer create a dataframe for each symbol, instead manipulate the dictionaries with list/dictionary comphrension
 - [X] mappings directory
 - [] use enums
 - [] pydantic for verifying content
