@@ -125,11 +125,13 @@ class DataFetcher:
     # Define a function to process historical data
     async def process_historical_data(self):
         # Concatenate all DataFrames into a single DataFrame, with a multiindex of Datetime and Symbol
-        combined_historical_df = hdou.combine_symbol_dataframes(
-            self.historical_data.historical_data_by_symbol
+        combined_historical_df = hdou.combine_dataframes(
+            self.historical_data.data_by_symbol
         )
-        print(combined_historical_df.info(verbose=True))
 
+        print(combined_historical_df)
+        print(combined_historical_df.info(verbose=True))
+        # print(combined_hist_df.info(show_counts=True))
         # pickle for testing
         # combined_historical_df.to_pickle("output/output_dataframe.pkl")
 
