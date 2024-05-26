@@ -167,3 +167,4 @@ config.py
 efficiency.py
 *.prof
 *.pkl
+testing-gathering/
