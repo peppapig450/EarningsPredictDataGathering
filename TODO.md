@@ -5,6 +5,7 @@
 - [ ] Figure out the most optimial way to handle the concurrent gathering and processing (figure out how to use Queues, maybe change_executor with async, threadpool, shared manager, task groups)
 - [ ] Figure out how to use the returned headers for rate limiting
 
+
 - [X] no longer create a dataframe for each symbol, instead manipulate the dictionaries with list/dictionary comphrension
 - [X] mappings directory
 - [ ] use enums ?
@@ -16,6 +17,11 @@
   - Use sqlite and sets, bitwise comparison is fast
 - [ ] Setup <ins>config file reading</ins>
 - [X] Use alpaca python api (figure out how to get working asynchronously)
+
+### Concurrency:
+- Use 2 queues, one for gathering , one for processing
+- Use Symbol class with properties for each data type, along with slots
+- Look into context managers
 
 ## Ideas
 - custom JSON decoder for requests/aiohttp
