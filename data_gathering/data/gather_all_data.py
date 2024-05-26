@@ -13,6 +13,7 @@ from data_gathering.utils.cache.symbols_blacklist import BlacklistSymbolCache
 
 from .historical_prices.upcoming_earnings_history import HistoricalData
 
+
 class DataFetcher:
     def __init__(self):
         self.api_keys = APIKeys.from_config_file()
@@ -61,6 +62,8 @@ class DataFetcher:
                 leave=False,
             ):
                 symbol = str(upcoming_earning.symbol)
+                if self.cache.is_blacklisted(symbol):
+                    continue
 
                 # Fetch all types of data for the symbol concurrently
                 await asyncio.gather(
@@ -79,15 +82,15 @@ class DataFetcher:
                     fetch_with_semaphore(symbol, self.fetch_volatility_trading_volume),
                     fetch_with_semaphore(symbol, self.fetch_earnings_call_transcripts),
                 )
-                
+
                 if len(self.historical_data.data_by_symbol) >= 150:
                     break
 
             await self.process_historical_data()
 
         finally:
+            pass
 
-            await self.historical_data.finish()
             # if self.hist_json:
             #    await self.write_json_files()
 

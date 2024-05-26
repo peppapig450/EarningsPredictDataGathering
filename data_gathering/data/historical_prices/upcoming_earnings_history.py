@@ -1,4 +1,5 @@
 import asyncio
+import asyncio.staggered
 import json
 
 import aiohttp
@@ -54,15 +55,21 @@ class HistoricalData:
         async with self.data_fetcher.semaphore:
             async with session.get(url) as response:
                 data = await response.json()
-                
+
                 # Handle rate limiting
-                rate_limit_remaining = int(response.headers.get('X-RateLimit-Remaining', 0))
+                rate_limit_remaining = int(
+                    response.headers.get("X-RateLimit-Remaining", 0)
+                )
                 print(f"Rate limit remaining: {rate_limit_remaining}")
 
                 if rate_limit_remaining <= 1:
                     # Calculate sleep time to reset rate limit
-                    sleep_time = 60 / self.rate_limit_limit if self.rate_limit_limit > 0 else 1
-                    print(f"Rate limit almost exceeded. Sleeping for {sleep_time} seconds.")
+                    sleep_time = (
+                        60 / self.rate_limit_limit if self.rate_limit_limit > 0 else 1
+                    )
+                    print(
+                        f"Rate limit almost exceeded. Sleeping for {sleep_time} seconds."
+                    )
                     await asyncio.sleep(sleep_time)
 
                 if "bars" not in data or not data["bars"]:
