@@ -29,6 +29,7 @@ class HistoricalData:
         self.session = None
         self.mapping = historical_data_mapping
         self.data_fetcher = data_fetcher
+        self.rate_limit_limit = 200
 
     def get_headers(self):
         return {
@@ -53,6 +54,16 @@ class HistoricalData:
         async with self.data_fetcher.semaphore:
             async with session.get(url) as response:
                 data = await response.json()
+                
+                # Handle rate limiting
+                rate_limit_remaining = int(response.headers.get('X-RateLimit-Remaining', 0))
+                print(f"Rate limit remaining: {rate_limit_remaining}")
+
+                if rate_limit_remaining <= 1:
+                    # Calculate sleep time to reset rate limit
+                    sleep_time = 60 / self.rate_limit_limit if self.rate_limit_limit > 0 else 1
+                    print(f"Rate limit almost exceeded. Sleeping for {sleep_time} seconds.")
+                    await asyncio.sleep(sleep_time)
 
                 if "bars" not in data or not data["bars"]:
                     # Add symbol to the cache if historical data is empty
@@ -69,7 +80,6 @@ class HistoricalData:
     # TODO: Modify fetch_historical_data to return an Async Generator to use chunks
     # Json normalize taking way too long
     async def fetch_historical_data(self, symbol):
-        await asyncio.sleep(0.3)
         data = await self.fetch_data(symbol)
         if data:
             self.rename_columns(symbol, data)
