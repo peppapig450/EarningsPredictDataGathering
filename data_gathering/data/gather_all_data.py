@@ -1,5 +1,4 @@
 import asyncio
-import json
 
 import pandas as pd
 from tqdm.asyncio import tqdm
@@ -13,7 +12,6 @@ from data_gathering.utils.output_utils.historical_data.historical_data_output_ut
 from data_gathering.utils.cache.symbols_blacklist import BlacklistSymbolCache
 
 from .historical_prices.upcoming_earnings_history import HistoricalData
-
 
 class DataFetcher:
     def __init__(self):
@@ -81,6 +79,9 @@ class DataFetcher:
                     fetch_with_semaphore(symbol, self.fetch_volatility_trading_volume),
                     fetch_with_semaphore(symbol, self.fetch_earnings_call_transcripts),
                 )
+                
+                if len(self.historical_data.data_by_symbol) >= 150:
+                    break
 
             await self.process_historical_data()
 
@@ -129,7 +130,6 @@ class DataFetcher:
             self.historical_data.data_by_symbol
         )
 
-        print(combined_historical_df)
         print(combined_historical_df.info(verbose=True))
         # print(combined_hist_df.info(show_counts=True))
         # pickle for testing
