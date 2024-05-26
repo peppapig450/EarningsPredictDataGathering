@@ -11,7 +11,9 @@ from data_gathering.utils.output_utils.historical_data.historical_data_output_ut
 )
 from data_gathering.utils.cache.symbols_blacklist import BlacklistSymbolCache
 
-from .historical_prices.upcoming_earnings_history import HistoricalData
+from data_gathering.data.historical_prices.upcoming_earnings_history import (
+    HistoricalData,
+)
 
 
 class DataFetcher:
