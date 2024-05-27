@@ -1,12 +1,8 @@
-from .symbols import Symbol
+from datetime import date
+
+from pydantic import BaseModel, Field, ValidationError
 
 
-class UpcomingEarning:
-    def __init__(self, symbol: Symbol, earnings_date: str):
-        self.symbol = symbol
-        self.earnings_date = earnings_date
-
-    def __repr__(self) -> str:
-        return (
-            f"UpcomingEarning(symbol={self.symbol}, earnings_date={self.earnings_date})"
-        )
+class UpcomingEarning(BaseModel):
+    symbol: str = Field(pattern=r"^[^\.]+\w*$")
+    date: date
