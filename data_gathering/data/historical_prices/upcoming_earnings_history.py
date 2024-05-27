@@ -1,6 +1,4 @@
 import asyncio
-import asyncio.staggered
-import json
 
 import aiohttp
 import pandas as pd
