@@ -1,33 +1,37 @@
-import asyncio
+import re
 
-import fmpsdk
+import requests
+from pydantic import ValidationError
 
 from data_gathering.config.api_keys import APIKeys
-from data_gathering.models.symbols import Symbol
 from data_gathering.models.upcoming_earning import UpcomingEarning
 from data_gathering.utils.cache.symbols_blacklist import BlacklistSymbolCache
 
 
+# TODO: Custom types
 class UpcomingEarnings:
     def __init__(self, api_keys: APIKeys, cache: BlacklistSymbolCache):
         self.api_key = api_keys.fmp_api_key
-        self.blacklist = cache.blacklist
+        self.cache = cache
+        self.base_url = "https://financialmodelingprep.com/api/v3/earning_calendar"
 
-    async def get_upcoming_earnings(self, from_date, to_date):
-        async def upcoming_earnings_generator():
-            upcoming_earnings_list = await asyncio.to_thread(
-                fmpsdk.earning_calendar,
-                apikey=self.api_key,
-                from_date=from_date,
-                to_date=to_date,
+    def get_upcoming_earnngs_list(self, from_date: str, to_date: str, timeout=20):
+        payload = {"from": from_date, "to": to_date, "apikey": self.api_key}
+        response = requests.get(self.base_url, params=payload, timeout=timeout)
+        if response.status_code == 200:
+            try:
+                data = response.json()
+                parsed_data = [
+                    UpcomingEarning(**item)
+                    for item in data
+                    if not re.search(r"[-.][A-Z]+$", item["symbol"])
+                    and not self.cache.is_blacklisted(item["symbol"])
+                ]
+            except ValidationError as e:
+                raise e.with_traceback(e.__traceback__)
+        else:
+            raise requests.exceptions.RequestException.with_traceback(
+                requests.exceptions.RequestException.__traceback__
             )
 
-            for earning in upcoming_earnings_list:
-                if symbol := earning.get("symbol"):
-                    if not symbol in self.blacklist:
-                        symbol = Symbol.create(symbol)
-                        if symbol and (earnings_date := earning.get("date")):
-                            yield UpcomingEarning(symbol, earnings_date)
-
-        async for earnings in upcoming_earnings_generator():
-            yield earnings
+        return parsed_data
