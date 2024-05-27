@@ -37,3 +37,6 @@ class Task(ABC, metaclass=TaskMeta):
     @abstractmethod
     def run_cpu(self):
         pass
+
+    # subclass each task type with this class
+    # TODO: task handler and main looop
