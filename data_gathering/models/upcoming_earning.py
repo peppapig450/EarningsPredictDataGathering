@@ -1,6 +1,6 @@
 from datetime import date
 
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field
 
 
 class UpcomingEarning(BaseModel):
