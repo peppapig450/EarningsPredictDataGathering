@@ -49,7 +49,7 @@ async def main():
             # sliding window with itertools? or use look ahead for the io queue
             for symbol in symbols:
                 task = Task(
-                    task_id=symbol,
+                    task_id=1,  # TODO: figure out task id setup
                     task_type=TaskType.IO,
                     data_category=current_category,
                     symbols=[symbol],
