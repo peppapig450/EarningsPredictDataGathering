@@ -13,6 +13,7 @@ class Unit(str, Enum):
     YEARS = "years"
 
 
+# TODO: only include valid market days
 @dataclass
 class DateRange:
     """Represents a range of dates.
