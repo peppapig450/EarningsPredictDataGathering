@@ -12,15 +12,7 @@ class TaskType(Enum):
     CPU = auto()  # task is cpu bound
 
 
-class CategoryName(Enum):
-    @staticmethod
-    def _generate_next_value_(
-        name: str, start: int, count: int, last_values: list[Any]
-    ) -> Any:
-        return name
-
-
-class DataCategory(CategoryName):
+class DataCategory(Enum):
     HISTORICAL = auto()  # Historical Price Data
     FUNDAMENTALS = auto()  # Fundamental Metrics
     ANALYST_ESTIMATES = auto()  # Analyst Estimates and Recommendation
@@ -40,6 +32,11 @@ class DataCategory(CategoryName):
 class TaskMeta(type):
     def __call__(cls, *args, **kwargs):
         data_processor_class = cls.get_data_processor(kwargs["data_category"])
+        # Make sure the required methods exist, this eliminates the need for an abstract class
+        if not hasattr(cls, "run_io") or not hasattr(cls, "run_cpu"):
+            raise TypeError(
+                f"Class '{cls.__name__}' must implement 'run_io' and 'run_cpu' methods"
+            )
         instance = super().__call__(*args, **kwargs)
         instance.data_procsessor_class = data_processor_class
         return instance
@@ -47,13 +44,13 @@ class TaskMeta(type):
     @classmethod
     def get_data_processor(cls, data_category):
         mapping = {
-            DataCategory.HISTORICAL: HistoricalDataTask,
-            DataCategory.FUNDAMENTALS: FundamentalMetricsTask,
-            DataCategory.ANALYST_ESTIMATES: AnalysistEstimatesTask,
-            DataCategory.MARKET_SENTIMENT: MarketSentimentIndicatorsTask,
-            DataCategory.INDUSTRY_SECTOR: IndustryAndSectorDataTask,
-            DataCategory.COMPANY_NEWS: CompanyNewsAndEventsTask,
-            DataCategory.VOLATILITY: VolatilityTradingVolumeTask,
-            DataCategory.EARNINGS_TRANSCRIPTS: EarningsTranscriptsTask,
+            DataCategory.HISTORICAL: "HistoricalDataTask",
+            DataCategory.FUNDAMENTALS: "FundamentalMetricsTask",
+            DataCategory.ANALYST_ESTIMATES: "AnalysistEstimatesTask",
+            DataCategory.MARKET_SENTIMENT: "MarketSentimentIndicatorsTask",
+            DataCategory.INDUSTRY_SECTOR: "IndustryAndSectorDataTask",
+            DataCategory.COMPANY_NEWS: "CompanyNewsAndEventsTask",
+            DataCategory.VOLATILITY: "VolatilityTradingVolumeTask",
+            DataCategory.EARNINGS_TRANSCRIPTS: "EarningsTranscriptsTask",
         }
         return mapping[data_category]

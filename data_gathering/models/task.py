@@ -2,7 +2,7 @@ from .task_meta import TaskMeta, RunState, TaskType, DataCategory
 from abc import ABC, abstractmethod
 
 
-class Task(ABC, metaclass=TaskMeta):
+class Task(metaclass=TaskMeta):
     __slots__ = [
         "task_id",
         "task_type",
@@ -30,13 +30,4 @@ class Task(ABC, metaclass=TaskMeta):
         self.data_processor_class = None
         self.symbols = symbols
 
-    @abstractmethod
-    async def run_io(self):
-        pass
-
-    @abstractmethod
-    def run_cpu(self):
-        pass
-
     # subclass each task type with this class
-    # TODO: task handler and main looop
