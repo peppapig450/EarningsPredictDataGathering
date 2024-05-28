@@ -1,7 +1,7 @@
 # utils.py
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Optional
+from typing import Optional, Self
 from dataclasses import dataclass
 
 
@@ -29,7 +29,7 @@ class DateRange:
     @classmethod
     def create_from_today(
         cls, init_offset: int, date_window: int, init_unit: Unit, date_window_unit: Unit
-    ) -> "DateRange":
+    ) -> Self:
         """Creates a DateRange instance starting from today.
 
         Args:
@@ -72,7 +72,7 @@ class DateRange:
         date_window: Optional[int] = None,
         init_unit: Unit = Unit.DAYS,
         date_window_unit: Unit = Unit.DAYS,
-    ) -> "DateRange":
+    ) -> Self:
         """Convenience method to get a DateRange instance with default or specified parameters.
 
         Args:
