@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Self
 
 
+# XXX: Set properties for each type of api and if there is more than one return tuple
 @dataclass
 class APIKeys:
     """

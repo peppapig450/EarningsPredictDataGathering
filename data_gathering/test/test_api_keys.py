@@ -24,7 +24,7 @@ def config_file(tmp_path):
 
 
 def test_from_config_file(config_file):
-    api_keys = APIKeys.from_config_file(config_file)
+    api_keys = APIKeys.from_config_file(config_file_name=config_file)
     assert api_keys.fmp_api_key == "test_fmp_api_key"
     assert api_keys.finnhub_api_key == "test_finnhub_api_key"
     assert api_keys.alpha_vantage_api_key == "test_alpha_vantage_api_key"
