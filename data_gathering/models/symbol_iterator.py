@@ -31,4 +31,4 @@ class UpcomingEarningsIterator:
     ) -> Iterator[tuple[str | None, ...]]:
         total_symbols = len(self.symbols)
         window_size = max(1, floor(total_symbols * fraction))
-        return windowed(self.symbols, window_size)
+        return windowed(self.symbols, window_size, step=window_size)
