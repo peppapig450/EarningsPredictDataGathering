@@ -1,4 +1,5 @@
 import re
+from typing import List
 
 import requests
 from pydantic import ValidationError
@@ -8,14 +9,15 @@ from data_gathering.models.upcoming_earning import UpcomingEarning
 from data_gathering.utils.cache.symbols_blacklist import BlacklistSymbolCache
 
 
-# TODO: Write pytest
 class UpcomingEarnings:
     def __init__(self, api_keys: APIKeys, cache: BlacklistSymbolCache):
         self.api_key = api_keys.fmp_api_key
         self.cache = cache
         self.base_url = "https://financialmodelingprep.com/api/v3/earning_calendar"
 
-    def get_upcoming_earnings_list(self, from_date: str, to_date: str, timeout=20):
+    def get_upcoming_earnings_list(
+        self, from_date: str, to_date: str, timeout=20
+    ) -> List[UpcomingEarning]:
         payload = {"from": from_date, "to": to_date, "apikey": self.api_key}
         response = requests.get(self.base_url, params=payload, timeout=timeout)
         if response.status_code == 200:

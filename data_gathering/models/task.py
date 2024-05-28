@@ -1,4 +1,4 @@
-from .task_meta import TaskMeta, RunState, TaskType, DataCategory
+from .task_meta import DataCategory, RunState, TaskMeta, TaskType
 
 
 class Task(metaclass=TaskMeta):
