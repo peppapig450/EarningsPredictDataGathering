@@ -37,7 +37,7 @@ class TaskMeta(type):
                 f"Class '{cls.__name__}' must implement 'run_io' and 'run_cpu' methods"
             )
         instance = super().__call__(*args, **kwargs)
-        instance.data_procsessor_class = data_processor_class
+        instance.data_processor_class = data_processor_class
         return instance
 
     @classmethod
