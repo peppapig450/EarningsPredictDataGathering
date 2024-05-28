@@ -8,7 +8,7 @@ from data_gathering.models.upcoming_earning import UpcomingEarning
 from data_gathering.utils.cache.symbols_blacklist import BlacklistSymbolCache
 
 
-# TODO: Custom types
+# TODO: Write pytest
 class UpcomingEarnings:
     def __init__(self, api_keys: APIKeys, cache: BlacklistSymbolCache):
         self.api_key = api_keys.fmp_api_key
@@ -30,8 +30,6 @@ class UpcomingEarnings:
             except ValidationError as e:
                 raise e.with_traceback(e.__traceback__)
         else:
-            raise requests.exceptions.RequestException.with_traceback(
-                requests.exceptions.RequestException.__traceback__
-            )
+            raise requests.exceptions.RequestException
 
         return parsed_data

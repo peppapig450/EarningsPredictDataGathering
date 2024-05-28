@@ -1,5 +1,4 @@
 from .task_meta import TaskMeta, RunState, TaskType, DataCategory
-from abc import ABC, abstractmethod
 
 
 class Task(metaclass=TaskMeta):
@@ -17,8 +16,8 @@ class Task(metaclass=TaskMeta):
     def __init__(
         self,
         task_id,
-        task_type,
-        data_category,
+        task_type: TaskType,
+        data_category: DataCategory,
         symbols,
     ) -> None:
         self.task_id = task_id
