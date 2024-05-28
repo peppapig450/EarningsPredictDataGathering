@@ -1,9 +1,10 @@
+from typing import Any, Optional, Sequence
+
 from .task_meta import DataCategory, RunState, TaskMeta, TaskType
-from typing import List, Optional, Any, Sequence
 from .upcoming_earning import UpcomingEarning
 
-
-type Symbols = Sequence[UpcomingEarning | str]
+type Window = tuple[str | None, ...]
+type Symbols = Sequence[UpcomingEarning | str | Window | None]
 
 
 class Task(metaclass=TaskMeta):

@@ -1,24 +1,36 @@
 from collections import deque
-from multiprocessing import Pool, Queue as MPQueue
-from data_gathering.models.task_meta import TaskMeta, TaskType, RunState, DataCategory
+from multiprocessing import Pool, Manager
+from multiprocessing import Queue as MPQueue
+from multiprocessing.managers import Namespace
+from multiprocessing.pool import Pool as _Pool
+
 from data_gathering.models.task import Task
+from data_gathering.models.task_meta import DataCategory, RunState, TaskMeta, TaskType
 
 
 class TaskHandler:
-    def __init__(self, io_pool, cpu_pool, io_queue, cpu_queue, cpu_result_ns):
-        self.io_pool = io_pool
-        self.cpu_pool = cpu_pool
-        self.io_queue = io_queue
-        self.cpu_queue = cpu_queue
-        self.cpu_result_namespace = cpu_result_ns
+    def __init__(
+        self,
+        io_pool: _Pool,
+        cpu_pool: _Pool,
+        io_queue: MPQueue,
+        cpu_queue: MPQueue,
+        cpu_result_ns: Namespace,
+    ):
+        self.io_pool: _Pool = io_pool
+        self.cpu_pool: _Pool = cpu_pool
+        self.io_queue: MPQueue = io_queue
+        self.cpu_queue: MPQueue = cpu_queue
+        self.cpu_result_namespace: Namespace = cpu_result_ns
 
-    def add_task(self, task):
+    def add_task(self, task: Task):
         if task.task_type == TaskType.IO:
             self.io_queue.put(task)
         elif task.task_type == TaskType.CPU:
             self.cpu_queue.put(task)
 
     # TODO: look into using imap
+    # TODO: use send to the generator for next batch ?
     def io_worker(self):
         while not self.io_queue.empty():
             task = self.io_queue.get()

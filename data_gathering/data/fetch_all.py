@@ -3,8 +3,9 @@ from multiprocessing import Manager, Pool
 from multiprocessing import Queue as MPQueue
 
 from data_gathering.config.api_keys import APIKeys
-from data_gathering.data.upcoming_earnings.get_upcoming_earnings import UpcomingEarnings
+from data_gathering.data.get_upcoming_earnings import UpcomingEarnings
 from data_gathering.models.date_range import DateRange, Unit
+from data_gathering.models.symbol_iterator import UpcomingEarningsIterator
 from data_gathering.models.task import Task, TaskType
 from data_gathering.models.task_handler import TaskHandler
 from data_gathering.models.task_meta import DataCategory
@@ -36,8 +37,11 @@ async def main():
             init_unit=Unit.DAYS,
             date_window_unit=Unit.DAYS,
         )
-        symbols = upcoming.get_upcoming_earnings_list(
-            upcoming_dates.from_date, upcoming_dates.to_date
+
+        symbols_iterator = UpcomingEarningsIterator(
+            upcoming.get_upcoming_earnings_list(
+                upcoming_dates.from_date, upcoming_dates.to_date
+            )
         )
 
         data_categories = deque(DataCategory)
@@ -47,21 +51,27 @@ async def main():
 
             # Start the initial tasks for each symbol in the current category
             # sliding window with itertools? or use look ahead for the io queue
-            for symbol in symbols:
-                task = Task(
+            tasks = [
+                Task(
                     task_id=1,  # TODO: figure out task id setup
                     task_type=TaskType.IO,
                     data_category=current_category,
-                    symbols=[symbol],
+                    symbols=window,
                 )
+                for window in symbols_iterator.window_iterator(
+                    fraction=0.4
+                )  # Adjust fraction as needed
+            ]
+
+            for task in tasks:
                 handler.add_task(task)
-                # other idea:
-                #    Create initial tasks for each symbol in the current category
-                #    tasks = [Task(task_id=symbol, task_type=TaskType.IO, data_category=current_category, symbols=[symbol]) for symbol in symbols]
-                #
-                #    Add tasks to the IO queue
-                #    for task in tasks:
-                #        io_pool.apply_async(task.run_io, callback=lambda result: cpu_queue.put(result))
+            # other idea:
+            #    Create initial tasks for each symbol in the current category
+            #    tasks = [Task(task_id=symbol, task_type=TaskType.IO, data_category=current_category, symbols=[symbol]) for symbol in symbols]
+            #
+            #    Add tasks to the IO queue
+            #    for task in tasks:
+            #        io_pool.apply_async(task.run_io, callback=lambda result: cpu_queue.put(result))
 
             # Start io and cpu worker
             handler.io_worker()
