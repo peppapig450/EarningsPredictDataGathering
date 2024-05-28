@@ -1,5 +1,9 @@
 from .task_meta import DataCategory, RunState, TaskMeta, TaskType
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Sequence
+from .upcoming_earning import UpcomingEarning
+
+
+type Symbols = Sequence[UpcomingEarning | str]
 
 
 class Task(metaclass=TaskMeta):
@@ -7,14 +11,14 @@ class Task(metaclass=TaskMeta):
     A class representing a task with specific attributes and state.
 
     Attributes:
-        task_id (int): The unique identifier of the task.
+        task_id (str): The unique identifier of the task.
         task_type (TaskType): The type of task (IO or CPU bound).
         data_category (DataCategory): The category of data the task handles.
         state (RunState): The current state of the task (RUN or DONE).
         io_result (Optional[Any]): The result of the IO operation, initially None.
         cpu_result (Optional[Any]): The result of the CPU operation, initially None.
         data_processor_class (Optional[str]): The data processor class name, assigned by the metaclass.
-        symbols (List[str]): List of symbols related to the task.
+        symbols (Symbols): List of symbols related to the task.
     """
 
     __slots__ = [
@@ -34,7 +38,7 @@ class Task(metaclass=TaskMeta):
         task_id: int,
         task_type: TaskType,
         data_category: DataCategory,
-        symbols: List[str],
+        symbols: Symbols,
     ) -> None:
         """
         Initializes a Task instance.
@@ -43,7 +47,7 @@ class Task(metaclass=TaskMeta):
             task_id (int): The unique identifier of the task.
             task_type (TaskType): The type of task (IO or CPU bound).
             data_category (DataCategory): The category of data the task handles.
-            symbols (List[str]): List of symbols related to the task.
+            symbols (List[UpcomingEarning]): List of symbols related to the task.
         """
         self.task_id: int = task_id
         self.task_type: TaskType = task_type
@@ -51,7 +55,7 @@ class Task(metaclass=TaskMeta):
         self.state: RunState = RunState.RUN
         self.io_result: Optional[Any] = None
         self.cpu_result: Optional[Any] = None
-        self.symbols: List[str] = symbols
+        self.symbols: Symbols = symbols
 
     # subclass each task type with this class
     """
