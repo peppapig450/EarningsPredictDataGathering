@@ -15,7 +15,7 @@ class UpcomingEarnings:
         self.cache = cache
         self.base_url = "https://financialmodelingprep.com/api/v3/earning_calendar"
 
-    def get_upcoming_earnngs_list(self, from_date: str, to_date: str, timeout=20):
+    def get_upcoming_earnings_list(self, from_date: str, to_date: str, timeout=20):
         payload = {"from": from_date, "to": to_date, "apikey": self.api_key}
         response = requests.get(self.base_url, params=payload, timeout=timeout)
         if response.status_code == 200:
