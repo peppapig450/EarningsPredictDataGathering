@@ -44,26 +44,32 @@ class DateRange:
         today = datetime.today()
 
         init_delta = cls._get_delta(init_offset, init_unit)
-        from_date = (today + init_delta).strftime("%Y-%m-%d")
+        from_date = today + init_delta
 
         window_delta = cls._get_delta(date_window, date_window_unit)
-        to_date = (today + window_delta).strftime("%Y-%m-%d")
+        to_date = from_date + window_delta
 
-        return cls(from_date=from_date, to_date=to_date)
+        return cls(
+            from_date=from_date.strftime("%Y-%m-%d"),
+            to_date=to_date.strftime("%Y-%m-%d"),
+        )
 
     @staticmethod
     def _get_delta(offset: int, unit: Unit) -> timedelta:
         """Calculates the timedelta based on the offset and unit."""
-        if unit == Unit.DAYS:
-            return timedelta(days=offset)
-        elif unit == Unit.WEEKS:
-            return timedelta(weeks=offset)
-        elif unit == Unit.QUARTERS:
-            return timedelta(days=offset * 91)  # Approximation for 13 weeks per quarter
-        elif unit == Unit.MONTHS:
-            return timedelta(days=offset * 30)
-        elif unit == Unit.YEARS:
-            return timedelta(days=offset * 365)
+        unit_map = {
+            Unit.DAYS: timedelta(days=offset),
+            Unit.WEEKS: timedelta(weeks=offset),
+            Unit.QUARTERS: timedelta(
+                days=offset * 91
+            ),  # Approximation for 13 weeks per quarter
+            Unit.MONTHS: timedelta(days=offset * 30),
+            Unit.YEARS: timedelta(days=offset * 365),
+        }
+        try:
+            return unit_map[unit]
+        except KeyError as exc:
+            raise ValueError("Invalid Unit provided") from exc
 
     @classmethod
     def get_dates(
@@ -85,7 +91,7 @@ class DateRange:
             DateRange: A DateRange instance based on the provided or default parameters.
         """
         if init_offset is None:
-            init_offset = 1
+            init_offset = 0
         if date_window is None:
             date_window = 7
 
