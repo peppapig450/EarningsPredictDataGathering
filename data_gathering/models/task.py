@@ -30,3 +30,16 @@ class Task(metaclass=TaskMeta):
         self.symbols = symbols
 
     # subclass each task type with this class
+    """
+    example:
+        async def run_io(self, result_queue):
+            await asyncio.sleep(self.io_duration)
+            self.io_result = f"IO result for {self.symbols} in HistoricalTask"
+            self.state = RunState.DONE
+            result_queue.put(self)
+
+        def run_cpu(self, cpu_result_ns):
+            self.cpu_result = f"CPU result for {self.symbols} with {self.io_result}"
+            self.state = RunState.DONE
+            cpu_result_ns.chainmap[self.id] = self.cpu_result
+    """
