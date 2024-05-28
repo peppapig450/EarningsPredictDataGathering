@@ -1,4 +1,5 @@
 from enum import Enum, auto
+from typing import Any
 
 
 class RunState(Enum):
@@ -11,7 +12,15 @@ class TaskType(Enum):
     CPU = auto()  # task is cpu bound
 
 
-class DataCategory(Enum):
+class CategoryName(Enum):
+    @staticmethod
+    def _generate_next_value_(
+        name: str, start: int, count: int, last_values: list[Any]
+    ) -> Any:
+        return name
+
+
+class DataCategory(CategoryName):
     HISTORICAL = auto()  # Historical Price Data
     FUNDAMENTALS = auto()  # Fundamental Metrics
     ANALYST_ESTIMATES = auto()  # Analyst Estimates and Recommendation
@@ -32,7 +41,7 @@ class TaskMeta(type):
     def __call__(cls, *args, **kwargs):
         data_processor_class = cls.get_data_processor(kwargs["data_category"])
         instance = super().__call__(*args, **kwargs)
-        instance.data_processor_clss = data_processor_class
+        instance.data_procsessor_class = data_processor_class
         return instance
 
     @classmethod
