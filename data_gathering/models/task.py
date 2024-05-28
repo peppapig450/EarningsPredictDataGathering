@@ -27,7 +27,6 @@ class Task(metaclass=TaskMeta):
         self.state = RunState.RUN
         self.io_result = None
         self.cpu_result = None
-        self.data_processor_class = None
         self.symbols = symbols
 
     # subclass each task type with this class
