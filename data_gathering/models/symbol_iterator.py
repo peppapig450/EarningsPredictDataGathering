@@ -1,30 +1,34 @@
+from itertools import cycle
+from math import floor
+from typing import Iterator, List
+
 from more_itertools import windowed
 
+from .upcoming_earning import UpcomingEarning
 
-class SymbolIterator:
-    def __init__(self, symbols, batch_size=None, process_count=1):
-        self.symbols = symbols
-        self.process_count = process_count
-        self.batch_size = (
-            batch_size if batch_size is not None else self.calculate_batch_size()
-        )
 
-    def __len__(self):
-        # calculate and return length of symbols
-        if hasattr(self.symbols, "__len__"):
-            return len(self.symbols)
-        else:
-            return 0
+class UpcomingEarningsIterator:
+    def __init__(self, earnings: List[UpcomingEarning]):
+        self.symbols = [earning.symbol for earning in earnings]
+        self.index = 0  # For tracking the current index for __next__
 
-    def calculate_batch_size(self):
-        if self.process_count <= 1:
-            return len(self.symbols) // 4
-        else:
-            symbols_length = len(self.symbols)
-            return (symbols_length + self.process_count - 1) // self.process_count
+    def __iter__(self) -> Iterator[str]:
+        self.index = 0  # Reset the index whenever we start a new iteration
+        return self
 
-    def __iter__(self):
-        for batch in windowed(
-            self.symbols, self.batch_size, fillvalue=None, step=self.batch_size
-        ):
-            yield batch
+    def __next__(self) -> str:
+        if self.index >= len(self.symbols):
+            raise StopIteration
+        symbol = self.symbols[self.index]
+        self.index += 1
+        return symbol
+
+    def cyclic_iterator(self) -> Iterator[str]:
+        return cycle(self.symbols)
+
+    def window_iterator(
+        self, fraction: float = 0.1
+    ) -> Iterator[tuple[str | None, ...]]:
+        total_symbols = len(self.symbols)
+        window_size = max(1, floor(total_symbols * fraction))
+        return windowed(self.symbols, window_size)
