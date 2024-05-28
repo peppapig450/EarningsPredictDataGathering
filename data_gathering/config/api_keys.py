@@ -26,7 +26,7 @@ class APIKeys:
     apca_api_secret_key: str
 
     @classmethod
-    def from_config_file(cls, config_file_name: str = "api_kys.ini") -> Self:
+    def from_config_file(cls, config_file_name: str = "api_keys.ini") -> Self:
         """
         Creates an APIKeys instance from a configuration file.
 

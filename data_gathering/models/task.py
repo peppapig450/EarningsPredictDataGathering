@@ -15,6 +15,7 @@ class Task(metaclass=TaskMeta):
 
     def __init__(
         self,
+        *,
         task_id,
         task_type: TaskType,
         data_category: DataCategory,
