@@ -1,5 +1,6 @@
 # TODO
 
+- [ ] Figure out how to wrap the countable object around the batched one
 #### Dynamic sleeping calculation
 - utilize memoisation here
 
