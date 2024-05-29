@@ -4,14 +4,14 @@ import pandas as pd
 from tqdm.asyncio import tqdm
 
 from data_gathering.config.api_keys import APIKeys
-from data_gathering.data.upcoming_earnings.get_upcoming_earnings import UpcomingEarnings
+from data_gathering.data..get_upcoming_earnings import UpcomingEarnings
 from data_gathering.utils import DateUtils
 from data_gathering.utils.output_utils.historical_data.historical_data_output_utils import (
     HistoricalDataOutputUtils as hdou,
 )
 from data_gathering.utils.cache.symbols_blacklist import BlacklistSymbolCache
 
-from data_gathering.data.historical_prices.upcoming_earnings_history import (
+from data_gathering.data.upcoming_earnings_history import (
     HistoricalData,
 )
 

@@ -36,7 +36,7 @@ class Task(metaclass=TaskMeta):
     def __init__(
         self,
         *,
-        task_id: int,
+        task_id: int,  # TODO: set as pid
         task_type: TaskType,
         data_category: DataCategory,
         symbols: Symbols,
