@@ -30,7 +30,7 @@ def calculate_sleep_time(rate_limit, next_limit_change, remaining_requests, buff
   harmonic_mean = 0.01
 
   # Track processing times for harmonic mean calculation
-  processing_times = []
+  processing_times = deque(maxlen=windowsize)
 
   def update_harmonic_mean(processing_time):
     """
