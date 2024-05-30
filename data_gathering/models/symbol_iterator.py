@@ -1,5 +1,5 @@
 from math import floor
-from typing import Iterable, Tuple, Generator, Any, Self, Sequence
+from typing import Tuple, Any, Self, Sequence
 
 from itertools import islice, count
 from .upcoming_earning import UpcomingEarning
