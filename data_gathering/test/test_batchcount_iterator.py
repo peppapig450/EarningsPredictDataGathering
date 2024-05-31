@@ -22,13 +22,13 @@ def test_batch_iterator_batches():
     batch3, count3 = next(iterator)
 
     assert batch1 == ("AAPL", "GOOGL")
-    assert count1 == 2
+    assert count1 == 1
 
     assert batch2 == ("MSFT", "AMZN")
-    assert count2 == 4
+    assert count2 == 2
 
     assert batch3 == ("TSLA",)
-    assert count3 == 5
+    assert count3 == 3
 
 
 def test_batch_iterator_stop_iteration():
