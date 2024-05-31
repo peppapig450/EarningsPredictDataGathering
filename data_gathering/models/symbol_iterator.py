@@ -1,10 +1,9 @@
 from math import floor
-from typing import Tuple, Any, Self, Sequence
+from typing import List, Tuple, Any, Self
 
 from itertools import islice, count
-from .upcoming_earning import UpcomingEarning
 
-type Symbols = Sequence[UpcomingEarning | str]
+type Symbols = List[str]
 
 
 # TODO: maybe rename
@@ -72,6 +71,13 @@ class BatchIteratorWithCount:
         Getter method to access the total number of elements seen (read-only).
         """
         return self._total_seen
+
+    @property
+    def batch_size(self) -> int:
+        """
+        Getter method to access the batch size that was calculated (read-only).
+        """
+        return self._batch_size
 
     def _calculate_batch_size(self, iterable: Symbols, fraction: float) -> int:
         return max(1, floor(len(iterable) * fraction))
