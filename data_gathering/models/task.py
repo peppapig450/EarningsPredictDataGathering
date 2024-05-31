@@ -1,10 +1,9 @@
-from typing import Any, Optional, Sequence
+from typing import Any, Optional, Tuple
 
 from .task_meta import DataCategory, RunState, TaskMeta, TaskType
 from .upcoming_earning import UpcomingEarning
 
-type Window = tuple[str | None, ...]
-type Symbols = Sequence[UpcomingEarning | str | Window | None]
+type Window = Tuple[Tuple[Any, ...], int]
 
 
 class Task(metaclass=TaskMeta):
@@ -31,6 +30,7 @@ class Task(metaclass=TaskMeta):
         "cpu_result",
         "data_processor_class",
         "symbols",
+        "symbols_seen",
     ]
 
     def __init__(
@@ -39,7 +39,8 @@ class Task(metaclass=TaskMeta):
         task_id: int,  # TODO: set as pid
         task_type: TaskType,
         data_category: DataCategory,
-        symbols: Symbols,
+        symbols: Window,
+        symbols_seen: int,
     ) -> None:
         """
         Initializes a Task instance.
@@ -56,7 +57,8 @@ class Task(metaclass=TaskMeta):
         self.state: RunState = RunState.RUN
         self.io_result: Optional[Any] = None
         self.cpu_result: Optional[Any] = None
-        self.symbols: Symbols = symbols
+        self.symbols: Window = symbols
+        self.symbols_seen: int = symbols_seen
 
     # subclass each task type with this class
     """
