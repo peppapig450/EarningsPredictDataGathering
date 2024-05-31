@@ -5,7 +5,7 @@ from multiprocessing import Queue as MPQueue
 from data_gathering.config.api_keys import APIKeys
 from data_gathering.data.get_upcoming_earnings import UpcomingEarnings
 from data_gathering.models.date_range import DateRange, Unit
-from data_gathering.models.symbol_iterator import UpcomingEarningsIterator
+from data_gathering.models.symbol_iterator import BatchIteratorWithCount
 from data_gathering.models.task import Task, TaskType
 from data_gathering.models.task_handler import TaskHandler
 from data_gathering.models.task_meta import DataCategory
@@ -38,11 +38,13 @@ async def main():
             date_window_unit=Unit.DAYS,
         )
 
-        symbols_iterator = UpcomingEarningsIterator(
-            upcoming.get_upcoming_earnings_list(
+        try:
+            symbols = upcoming.get_upcoming_earnings_list_strings(
                 upcoming_dates.from_date, upcoming_dates.to_date
             )
-        )
+            symbols_iterator = BatchIteratorWithCount(symbols, fraction=0.1)
+        except:
+            exit()
 
         data_categories = deque(DataCategory)
 
@@ -53,14 +55,13 @@ async def main():
             # sliding window with itertools? or use look ahead for the io queue
             tasks = [
                 Task(
-                    task_id=1,  # TODO: figure out task id setup
+                    task_id=1,  # TODO: figure out task id setup ( PID prolly)
                     task_type=TaskType.IO,
                     data_category=current_category,
                     symbols=window,
+                    symbols_seen=symbols_iterator.total_seen,
                 )
-                for window in symbols_iterator.window_iterator(
-                    fraction=0.4
-                )  # Adjust fraction as needed
+                for window, _ in symbols_iterator
             ]
 
             for task in tasks:
