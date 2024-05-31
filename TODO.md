@@ -1,6 +1,5 @@
 # TODO
 
-- [ ] Figure out how to wrap the countable object around the batched one
 #### Dynamic sleeping calculation
 - utilize memoisation here
 
@@ -74,8 +73,8 @@ def calculate_sleep_time(rate_limit, next_limit_change, remaining_requests, buff
 
 - [X] no longer create a dataframe for each symbol, instead manipulate the dictionaries with list/dictionary comphrension
 - [X] mappings directory
-- [ ] use enums ?
-- [ ] pydantic for verifying content
+- [X] use enums ?
+- [X] pydantic for verifying content
 
 - [ ] Improve type hinting and add documentation for gather_all_data and upcoming_earnings_history + any other file
 - [ ] Write tests for those files too
@@ -85,8 +84,7 @@ def calculate_sleep_time(rate_limit, next_limit_change, remaining_requests, buff
 - [X] Use alpaca python api (figure out how to get working asynchronously)
 
 ### Concurrency:
-- Use 2 queues, one for gathering , one for processing
-- Use Symbol class with properties for each data type, along with slots
+= [X] Use 2 queues, one for gathering , one for processing
 - Look into context managers
 
 ## Ideas
