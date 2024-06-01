@@ -43,8 +43,8 @@ async def main():
                 upcoming_dates.from_date, upcoming_dates.to_date
             )
             symbols_iterator = BatchIteratorWithCount(symbols, fraction=0.1)
-        except:
-            exit()
+        except Exception as e:
+            exit()  # Not implemented yet
 
         data_categories = deque(DataCategory)
 

@@ -82,8 +82,7 @@ class HistoricalData:
                     # Add symbol to the cache if historical data retrieval fails
                     return None
 
-    # TODO: Modify fetch_historical_data to return an Async Generator to use chunks
-    # Json normalize taking way too long
+
     async def fetch_historical_data(self, symbol):
         data = await self.fetch_data(symbol)
         if data:
