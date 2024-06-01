@@ -19,7 +19,7 @@ async def main():
         cpu_result_namespace = manager.Namespace()
         cpu_result_namespace.chainmap = ChainMap()
 
-        api_keys = APIKeys.from_config_file()
+        api_keys = APIKeys(load_from="config")
         cache = BlacklistSymbolCache()
 
         upcoming = UpcomingEarnings(api_keys, cache)
