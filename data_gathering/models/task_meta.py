@@ -49,18 +49,18 @@ class TaskMeta(type):
     """
 
     def __call__(cls, *args, **kwargs):
-        data_processor_class = cls.get_data_processor(kwargs["data_category"])
+        data_category_class = cls.get_data_category_class(kwargs["data_category"])
         # Make sure the required methods exist, this eliminates the need for an abstract class
         if not hasattr(cls, "run_io") or not hasattr(cls, "run_cpu"):
             raise TypeError(
                 f"Class '{cls.__name__}' must implement 'run_io' and 'run_cpu' methods"
             )
         instance = super().__call__(*args, **kwargs)
-        instance.data_processor_class = data_processor_class
+        instance.data_category_class = data_category_class
         return instance
 
     @classmethod
-    def get_data_processor(mcs, data_category: DataCategory) -> str:
+    def get_data_category_class(mcs, data_category: DataCategory) -> str:
         """
         Returns the name of the data processor class corresponding to the given data category.
 

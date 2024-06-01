@@ -17,7 +17,7 @@ class Task(metaclass=TaskMeta):
         state (RunState): The current state of the task (RUN or DONE).
         io_result (Optional[Any]): The result of the IO operation, initially None.
         cpu_result (Optional[Any]): The result of the CPU operation, initially None.
-        data_processor_class (Optional[str]): The data processor class name, assigned by the metaclass.
+        data_category_class (Optional[str]): The data category class name, assigned by the metaclass.
         symbols (Symbols): List of symbols related to the task.
     """
 
@@ -28,7 +28,7 @@ class Task(metaclass=TaskMeta):
         "state",
         "io_result",
         "cpu_result",
-        "data_processor_class",
+        "data_category_class",
         "symbols",
         "symbols_seen",
     ]
