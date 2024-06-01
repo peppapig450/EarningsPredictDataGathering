@@ -10,12 +10,11 @@ from data_gathering.data.get_upcoming_earnings import (
 )
 from data_gathering.models.upcoming_earning import UpcomingEarning
 from data_gathering.utils.cache.symbols_blacklist import BlacklistSymbolCache
-from data_gathering.config.api_keys import APIKeys
+from data_gathering.config.api_keys import APIKeys, APIService
 
 
-# Mocking the APIKeys class
-class MockAPiKeys:
-    fmp_api_key = "test_api_key"
+class MockAPiKeys(APIKeys):
+    _keys = {APIService.FMP: "test_api_key"}
 
 
 @pytest.fixture

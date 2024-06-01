@@ -1,6 +1,7 @@
 import pytest
 from data_gathering.models.task_meta import DataCategory, RunState, TaskMeta, TaskType
 from data_gathering.models.task import Task
+from data_gathering.models.symbol_iterator import BatchIteratorWithCount
 
 
 # Define a mock Task class with run_io and run_cpu methods for testing purposes
@@ -44,25 +45,58 @@ def test_data_category_get_next_category():
 
 
 def test_task_initialization():
+    symbols = ["AAPL", "GOOGL", "MSFT", "AMZN", "TSLA"]
+    fraction = 0.4
+    iterator = BatchIteratorWithCount(symbols, fraction)
+
+    symbols_window, _ = next(iterator)
+    symbols_seen = 1  # Starting with 1 because we've already consumed one batch
     task = MockTask(
         task_id=1,
         task_type=TaskType.IO,
         data_category=DataCategory.HISTORICAL,
-        symbols=["AAPL", "GOOGL"],
+        symbols=symbols_window,
+        symbols_seen=symbols_seen,
     )
+
     assert task.task_id == 1
     assert task.task_type == TaskType.IO
     assert task.data_category == DataCategory.HISTORICAL
     assert task.state == RunState.RUN
     assert task.io_result is None
     assert task.cpu_result is None
-    assert task.data_processor_class == "HistoricalDataTask"
-    assert task.symbols == ["AAPL", "GOOGL"]
+    assert task.data_category_class == "HistoricalDataTask"
+    assert task.symbols == symbols_window
+
+    # Update symbols_seen and initialize tasks for the next batches
+    for batch, count in iterator:
+        symbols_seen = count
+        task = MockTask(
+            task_id=1,  # TODO: figure out task id setup ( PID prolly)
+            task_type=TaskType.IO,
+            data_category=DataCategory.HISTORICAL,
+            symbols=batch,
+            symbols_seen=symbols_seen,
+        )
 
 
 def test_task_meta_missing_methods():
     class IncompleteTask(Task):
-        pass
+        def __init__(self, *, task_id, task_type, data_category, symbols, symbols_seen):
+            super().__init__(
+                task_id=task_id,
+                task_type=task_type,
+                data_category=data_category,
+                symbols=symbols,
+                symbols_seen=symbols_seen,
+            )
+
+    symbols = ["AAPL", "GOOGL", "MSFT", "AMZN", "TSLA"]
+    fraction = 0.4
+    iterator = BatchIteratorWithCount(symbols, fraction)
+
+    symbols_window, _ = next(iterator)
+    symbols_seen = 1  # Starting with 1 because we've already consumed one batch
 
     with pytest.raises(
         TypeError,
@@ -72,5 +106,6 @@ def test_task_meta_missing_methods():
             task_id=1,
             task_type=TaskType.IO,
             data_category=DataCategory.HISTORICAL,
-            symbols=["AAPL", "GOOGL"],
+            symbols=symbols_window,
+            symbols_seen=symbols_seen,
         )
