@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
 import aiohttp
-from typing import Any
 
 
 class AbstractSessionManager(ABC):
@@ -23,7 +22,9 @@ class AbstractSessionManager(ABC):
     @asynccontextmanager
     async def manage_session(self):
         if not self.session:
-            self.session = aiohttp.ClientSession(headers=self.get_headers())
+            self.session = aiohttp.ClientSession(
+                base_url=self.get_base_url(), headers=self.get_headers()
+            )
         try:
             yield self.session
         finally:
