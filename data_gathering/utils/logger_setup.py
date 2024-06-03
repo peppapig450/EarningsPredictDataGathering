@@ -14,6 +14,13 @@ def setup_logging(
     base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
     path = os.path.join(base_dir, default_path)
 
+    # Default logging directory
+    logging_dir = os.path.join(base_dir, "logging")
+
+    # Create if it doesnt
+    if not os.path.exists(logging_dir):
+        os.makedirs(logging_dir)
+
     # Check if environment variable overrides the path
     if value := os.getenv(env_key, None):
         path = value
@@ -21,7 +28,7 @@ def setup_logging(
     # Load and apply logging configuration
     try:
         if os.path.exists(path):
-            with open(path, "rb", encoding="utf-8") as config_file:
+            with open(path, "rb") as config_file:
                 config = toml.load(config_file)
             logging.config.dictConfig(config)
         else:
