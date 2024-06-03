@@ -15,16 +15,10 @@ class AbstractSessionManager(ABC):
     def get_headers(self) -> dict[str, str]:
         pass
 
-    @abstractmethod
-    def get_base_url(self) -> str:
-        pass
-
     @asynccontextmanager
     async def manage_session(self):
         if not self.session:
-            self.session = aiohttp.ClientSession(
-                base_url=self.get_base_url(), headers=self.get_headers()
-            )
+            self.session = aiohttp.ClientSession(headers=self.get_headers())
         try:
             yield self.session
         finally:
