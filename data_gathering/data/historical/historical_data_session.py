@@ -8,7 +8,7 @@ class HistoricalDataSessionManager(AbstractSessionManager):
         super().__init__()
 
     def get_base_url(self) -> str:
-        return "https://data.alpaca.markets/v2/stocks/bars"
+        return "https://data.alpaca.markets/"
 
     def get_headers(self) -> dict[str, str]:
         _apca_key_id, _apca_api_secret_key = self.api_keys.get_key(APIService.ALPACA)
