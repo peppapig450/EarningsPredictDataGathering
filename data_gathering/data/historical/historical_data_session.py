@@ -1,5 +1,5 @@
-from data_gathering.models.async_session_manager import AbstractSessionManager
 from data_gathering.config.api_keys import APIKeys, APIService
+from data_gathering.models.async_session_manager import AbstractSessionManager
 
 
 class HistoricalDataSessionManager(AbstractSessionManager):
