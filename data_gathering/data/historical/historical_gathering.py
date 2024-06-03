@@ -2,6 +2,7 @@ import logging
 import typing
 
 import aiohttp
+import urllib.parse
 from historical_data_session import HistoricalDataSessionManager
 
 from data_gathering.config.api_keys import APIKeys, APIService
@@ -42,6 +43,8 @@ class HistoricalDataGathering:
         if not symbols:
             raise ValueError("Symbols cannot be empty.")
 
+        symbols_batch = ",".join(symbols)
+        encoded_symbols = urllib.parse.quote(symbols_batch)
         remaining_base_url: str = "v2/stocks/bars/"
         rest_of_url: str = f"&timeframe=1Day&start={self.from_date}&end={self.to_date}"
         complete_url: str = f"{remaining_base_url}?symbols={symbols}{rest_of_url}"
