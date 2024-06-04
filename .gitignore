@@ -168,4 +168,3 @@ efficiency.py
 *.prof
 *.pkl
 testing-gathering/
-testing.py
