@@ -103,6 +103,7 @@ class HistoricalDataGathering:
         except Exception as e:
             raise Exception from e
 
+    # TODO:
     async def handle_data_pagination(self, session, data, complete_url):
         data_dict = {}
         if data and complete_url:
