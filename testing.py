@@ -103,7 +103,6 @@ class HistoricalDataGathering:
         except Exception as e:
             raise Exception from e
 
-    # TODO:
     async def handle_data_pagination(self, session, data, complete_url):
         data_dict = {}
         if data and complete_url:
@@ -141,7 +140,6 @@ class HistoricalDataGathering:
                 )
 
                 new_data, _ = await self.async_make_api_request(session, url=new_url)
-                print(new_data)
                 data_dict.update(new_data["bars"])
                 next_page_token = new_data.get("next_page_token", None)
 
@@ -254,11 +252,9 @@ async def gather_data(symbols_batches, api_keys, to_date, cache, session_manager
         # Await the completion of all tasks
         data_results = await asyncio.gather(*tasks)
 
-        all_data = [item for sublist in data_results for item in sublist]
-
 
     # Combine all the results for now
-    return all_data
+    return data_results
 
 async def gather_data_for_batch(symbols, session, data_collector, pagination_event):
     """
@@ -275,8 +271,7 @@ async def gather_data_for_batch(symbols, session, data_collector, pagination_eve
     """
     initial_data, complete_url = await data_collector.async_make_api_request(session, symbols=symbols)
 
-    if 'next_page_token' in initial_data:
-        print(initial_data, flush=True)
+    if initial_data.get("next_page_token", None) is not None:
         # If pagination is needed, await the pagination task
         pagination_event.set()
 
@@ -291,8 +286,6 @@ async def gather_data_for_batch(symbols, session, data_collector, pagination_eve
 async def check_speed(symbols_iterator, api_keys, cache, session_manager, to_date="2024-05-04"):
     complete_data = await gather_data(symbols_iterator, api_keys, to_date, cache, session_manager)
     print(complete_data)
-    with open("output_data.json", "w") as f:
-        json.dump(complete_data, f, indent=4)
     return complete_data
 
 
