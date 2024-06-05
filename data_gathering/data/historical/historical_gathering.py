@@ -2,7 +2,7 @@ import logging
 from collections import OrderedDict
 from datetime import date
 from re import compile
-from typing import Any
+from typing import Any, Optional
 from urllib.parse import parse_qsl, quote, urlencode, urlparse, urlunparse
 
 import aiohttp
@@ -23,6 +23,16 @@ class HistoricalDataGathering:
         session_manager: HistoricalDataSessionManager,
         from_date: str = "1983-01-01",
     ) -> None:
+        """
+        Initializes the HistoricalDataGathering object.
+
+        Args:
+            api_keys (APIKeys): API keys for authentication.
+            to_date (str): The end date for data collection in YYYY-MM-DD format.
+            cache (BlacklistSymbolCache): Cache object for storing blacklisted symbols.
+            session_manager (HistoricalDataSessionManager): Session manager for handling HTTP sessions.
+            from_date (str, optional): The start date for data collection in YYYY-MM-DD format. Defaults to "1983-01-01".
+        """
         self._apca_key_id, self._apca_api_secret_key = api_keys.get_key(
             APIService.ALPACA
         )
@@ -64,13 +74,35 @@ class HistoricalDataGathering:
 
         return from_date, to_date
 
-    def get_headers(self):
+    def get_headers(self) -> dict[str, str]:
+        """
+        Generates the headers for API requests.
+
+        Returns:
+            Dict[str, str]: A dictionary containing the API headers.
+        """
         return {
             "APCA-API-KEY-ID": self._apca_key_id,
             "APCA-API-SECRET-KEY": self._apca_api_secret_key,
         }
 
-    async def make_api_request(self, session, symbols=None, url=None):
+    # TODO: figure how to use callable to annotate session
+    async def make_api_request(self, session, symbols: Optional[list[str]] = None, url: Optional[str] = None) -> tuple[dict[str, Any], str]:
+        """
+        Makes an API request to the Alpaca service.
+
+        Args:
+            session (aiohttp.ClientSession): The aiohttp session to be used for the request.
+            symbols (Optional[List[str]]): A list of stock symbols to gather data for.
+            url (Optional[str]): A complete URL to gather data from.
+
+        Returns:
+            Tuple[Dict[str, Any], str]: The response data and the complete URL.
+
+        Raises:
+            ValueError: If neither symbols nor a URL are provided.
+            RuntimeError: If there is an error gathering data.
+        """
         if symbols is not None:
             symbols_batch = ",".join(symbols)
             encoded_symbols = quote(symbols_batch)
@@ -93,7 +125,18 @@ class HistoricalDataGathering:
         finally:
             raise RuntimeError("Something went wrong gathering data.")
 
-    async def handle_response_pagination(self, session, data, url):
+    async def handle_response_pagination(self, session, data, url: str):
+        """
+        Handles the pagination for API responses.
+
+        Args:
+            session (aiohttp.ClientSession): The aiohttp session to be used for the requests.
+            data (Dict[str, Any]): The initial response data.
+            url (str): The complete URL for the request.
+
+        Returns:
+            OrderedDict: The complete data gathered from all pages.
+        """
         data_dict = OrderedDict()
         if data and url:
             data_dict.update(data.get("bars", None))
@@ -130,7 +173,7 @@ class HistoricalDataGathering:
                 )
 
                 new_data, _ = await self.make_api_request(session, url=new_url)
-                data_dict.update(new_data.get("bars", None))
+                data_dict.update(new_data.get("bars", {}))
 
                 if data_dict is not None:
                     next_page_token = new_data.get("next_page_token", None)
