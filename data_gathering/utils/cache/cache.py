@@ -11,7 +11,6 @@ class Cache:
         if not os.path.exists(self.cache_dir):
             os.makedirs(self.cache_dir)
         self.blacklist_symbols = blacklist_symbols
-        self.blacklist_symbols = blacklist_symbols
 
     def _get_root_directory(self):
         script_path = os.path.abspath(__file__)
