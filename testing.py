@@ -222,11 +222,13 @@ class HistoricalDataGathering:
             raise Exception from e
 
 
-async def gather_data(symbols, api_keys, to_date, cache, session_manager):
+async def gather_data(symbol_batches, api_keys, to_date, cache, session_manager):
     data_collector = HistoricalDataGathering(
         api_keys, to_date=to_date, cache=cache, session_manager=session_manager
     )
+
     async with session_manager.manage_session() as session:
+        pagination_task = asyncio.create_task
         initial_data, complete_url = await data_collector.async_make_api_request(session, symbols)
         complete_data = await data_collector.handle_data_pagination(session, initial_data, complete_url)
 
