@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
-import aiohttp
+from typing import Any, AsyncGenerator
+
+from aiohttp import ClientSession
 
 
 class AbstractSessionManager(ABC):
@@ -16,9 +18,9 @@ class AbstractSessionManager(ABC):
         pass
 
     @asynccontextmanager
-    async def manage_session(self):
+    async def manage_session(self) -> AsyncGenerator[ClientSession, Any]:
         if not self.session:
-            self.session = aiohttp.ClientSession(headers=self.get_headers())
+            self.session = ClientSession(headers=self.get_headers())
         try:
             yield self.session
         finally:
