@@ -222,17 +222,70 @@ class HistoricalDataGathering:
             raise Exception from e
 
 
-async def gather_data(symbol_batches, api_keys, to_date, cache, session_manager):
+async def gather_data(symbols_batches, api_keys, to_date, cache, session_manager):
+    """
+    Gathers data for the specified symbols.
+
+    Args:
+        symbols_batches (List[List[str]]): The list of batches of stock symbols to gather data for.
+        api_keys (str): API keys for authentication.
+        to_date (str): The end date for data collection in YYYY-MM-DD format.
+        cache (BlacklistSymbolCache): Cache object for storing blacklisted symbols.
+        session_manager (HistoricalDataSessionManager): Session manager for handling HTTP sessions.
+
+    Returns:
+        List[Dict[str, Any]]: The complete data gathered.
+    """
     data_collector = HistoricalDataGathering(
         api_keys, to_date=to_date, cache=cache, session_manager=session_manager
     )
-
     async with session_manager.manage_session() as session:
-        pagination_task = asyncio.create_task
-        initial_data, complete_url = await data_collector.async_make_api_request(session, symbols)
-        complete_data = await data_collector.handle_data_pagination(session, initial_data, complete_url)
-
+        # Create a task for pagination handling outside the loop
+        pagination_task = asyncio.create_task(
+            data_collector.handle_data_pagination(session, None, None)
+        )
+        
+        tasks = []
+        for batch in symbols_batches:
+            # Create a task for each batch of symbol
+            tasks.append(asyncio.create_task(
+                gather_data_for_batch(batch, session, data_collector, pagination_task)
+            ))
+            
+        # Await the completion of all tasks
+        results = await asyncio.gather(*tasks)
+        
+        # Wait for pagination to complete
+        await pagination_task
+        
+    # Combine all the results for now
+    complete_data = [item for sublist in results for item in sublist]
     return complete_data
+
+async def gather_data_for_batch(symbols, session, data_collector, pagination_task):
+    """
+    Gathers data for a batch of symbols.
+
+    Args:
+        symbols (List[str]): The list of stock symbols to gather data for.
+        session: The aiohttp session to be used for the requests.
+        data_collector: The HistoricalDataGathering object for data collection.
+        pagination_task: The task responsible for pagination handling.
+
+    Returns:
+        List[Dict[str, Any]]: The complete data gathered for the batch.
+    """
+    initial_data, complete_url = await data_collector.async_make_api_request(session, symbols=symbols)
+    
+    if 'next_page_token' in initial_data:
+        # If pagination is needed, await the pagination task
+        await pagination_task
+        
+    # Process the initial data
+    complete_data = await data_collector.handle_data_pagination(session, initial_data, complete_url)
+    
+    return complete_data
+    
 
 
 def get_data(symbols, api_keys, to_date, cache, session):
