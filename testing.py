@@ -285,7 +285,6 @@ async def gather_data_for_batch(symbols, session, data_collector, pagination_eve
 
 async def check_speed(symbols_iterator, api_keys, cache, session_manager, to_date="2024-05-04"):
     complete_data = await gather_data(symbols_iterator, api_keys, to_date, cache, session_manager)
-    print(complete_data)
     return complete_data
 
 

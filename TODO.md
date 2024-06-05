@@ -69,6 +69,7 @@ def calculate_sleep_time(rate_limit, next_limit_change, remaining_requests, buff
 
 - [ ] Figure out the most optimial way to handle the concurrent gathering and processing (figure out how to use Queues, maybe change_executor with async, threadpool, shared manager, task groups)
 - [ ] Figure out how to use the returned headers for rate limiting
+- [ ] Use another json library if performance becomes too slow (orjson, ujson)
 
 
 - [X] no longer create a dataframe for each symbol, instead manipulate the dictionaries with list/dictionary comphrension
