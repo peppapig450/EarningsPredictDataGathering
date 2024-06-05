@@ -105,43 +105,44 @@ class HistoricalDataGathering:
 
     async def handle_data_pagination(self, session, data, complete_url):
         data_dict = {}
-        print(data, flush=True)
-        data_dict.update(data["bars"])
-        next_page_token = data.get("next_page_token", None)
+        if data and complete_url:
+            data_dict.update(data["bars"])
+            next_page_token = data.get("next_page_token", None)
 
-        while next_page_token:
-            self.logger.info("Getting pagination for %s with %s", complete_url, next_page_token)
+            while next_page_token:
+                self.logger.info("Getting pagination for %s with %s", complete_url, next_page_token)
 
-            parsed_url = urlparse(complete_url) # Parse the url
-            query_params = parse_qsl(parsed_url.query) # Split the query parameters
+                parsed_url = urlparse(complete_url) # Parse the url
+                query_params = parse_qsl(parsed_url.query) # Split the query parameters
 
-            # Insert the 'next_page_token' before the 'sort' parameter
-            for i, (key, value) in enumerate(query_params):
-                if key == "sort":
-                    query_params.insert(i, ("page_token", next_page_token))
-                    break
-            else:
-                # If 'sort' parameter not found, append the 'page_token' at the end
-                query_params.append(("page_token", next_page_token))
+                # Insert the 'next_page_token' before the 'sort' parameter
+                for i, (key, value) in enumerate(query_params):
+                    if key == "sort":
+                        query_params.insert(i, ("page_token", next_page_token))
+                        break
+                else:
+                    # If 'sort' parameter not found, append the 'page_token' at the end
+                    query_params.append(("page_token", next_page_token))
 
-            # Encode the next query params
-            new_query = urlencode(query_params, doseq=True)
+                # Encode the next query params
+                new_query = urlencode(query_params, doseq=True)
 
-            # Reconstruct the url with the 'page_token' added
-            new_url = urlunparse(
-                (
-                parsed_url.scheme,
-                parsed_url.netloc,
-                parsed_url.path,
-                parsed_url.params,
-                new_query,
-                parsed_url.fragment,
+                # Reconstruct the url with the 'page_token' added
+                new_url = urlunparse(
+                    (
+                    parsed_url.scheme,
+                    parsed_url.netloc,
+                    parsed_url.path,
+                    parsed_url.params,
+                    new_query,
+                    parsed_url.fragment,
+                    )
                 )
-            )
 
-            new_data, _ = await self.async_make_api_request(session, url=new_url)
-            data_dict.update(new_data["bars"])
-            next_page_token = new_data.get("next_page_token", None)
+                new_data, _ = await self.async_make_api_request(session, url=new_url)
+                print(new_data)
+                data_dict.update(new_data["bars"])
+                next_page_token = new_data.get("next_page_token", None)
 
         return data_dict
 
@@ -240,29 +241,25 @@ async def gather_data(symbols_batches, api_keys, to_date, cache, session_manager
         api_keys, to_date=to_date, cache=cache, session_manager=session_manager
     )
     async with session_manager.manage_session() as session:
-        # Create a task for pagination handling outside the loop
-        pagination_task = asyncio.create_task(
-            data_collector.handle_data_pagination(session, None, None)
-        )
-        
+        pagination_event = asyncio.Event()
+
         tasks = []
-        for batch in symbols_batches:
+        for batch, _ in symbols_batches:
             # Create a task for each batch of symbol
             tasks.append(asyncio.create_task(
-                gather_data_for_batch(batch, session, data_collector, pagination_task)
+                gather_data_for_batch(batch, session, data_collector, pagination_event)
             ))
-            
-        # Await the completion of all tasks
-        results = await asyncio.gather(*tasks)
-        
-        # Wait for pagination to complete
-        await pagination_task
-        
-    # Combine all the results for now
-    complete_data = [item for sublist in results for item in sublist]
-    return complete_data
 
-async def gather_data_for_batch(symbols, session, data_collector, pagination_task):
+        # Await the completion of all tasks
+        data_results = await asyncio.gather(*tasks)
+
+        all_data = [item for sublist in data_results for item in sublist]
+
+
+    # Combine all the results for now
+    return all_data
+
+async def gather_data_for_batch(symbols, session, data_collector, pagination_event):
     """
     Gathers data for a batch of symbols.
 
@@ -276,33 +273,27 @@ async def gather_data_for_batch(symbols, session, data_collector, pagination_tas
         List[Dict[str, Any]]: The complete data gathered for the batch.
     """
     initial_data, complete_url = await data_collector.async_make_api_request(session, symbols=symbols)
-    
+
     if 'next_page_token' in initial_data:
+        print(initial_data, flush=True)
         # If pagination is needed, await the pagination task
-        await pagination_task
-        
+        pagination_event.set()
+
     # Process the initial data
     complete_data = await data_collector.handle_data_pagination(session, initial_data, complete_url)
-    
-    return complete_data
-    
 
-
-def get_data(symbols, api_keys, to_date, cache, session):
-    data_collector = HistoricalDataGathering(
-        api_keys, to_date="2024-05-02", cache=cache, session_manager=session
-    )
-
-    data, complete_url = data_collector.make_api_request(symbols)
-    complete_data = data_collector.determine_rerun_request(data, complete_url)
     return complete_data
 
-def check_speed(symbols_iterator, api_keys, cache, session_manager, to_date="2024-05-04"):
-    data_list = []
-    for batch, _ in symbols_iterator:
-        #batch_data = asyncio.run(gather_data(batch, api_keys, "2024-05-04", cache, session_manager))
-        batch_data = get_data(batch, api_keys, to_date, cache, session_manager)
-        data_list.append(batch_data)
+
+
+
+async def check_speed(symbols_iterator, api_keys, cache, session_manager, to_date="2024-05-04"):
+    complete_data = await gather_data(symbols_iterator, api_keys, to_date, cache, session_manager)
+    print(complete_data)
+    with open("output_data.json", "w") as f:
+        json.dump(complete_data, f, indent=4)
+    return complete_data
+
 
 if __name__ == "__main__":
     setup_logging()
@@ -323,4 +314,4 @@ if __name__ == "__main__":
     symbols_iterator = BatchIteratorWithCount(symbols, fraction=0.025)
     session_manager = HistoricalDataSessionManager(api_keys)
 
-    cProfile.run("check_speed(symbols_iterator, api_keys, cache, session_manager)", filename="output-noasync.prof")
+    cProfile.run("asyncio.run(check_speed(symbols_iterator, api_keys, cache, session_manager))", filename="output-async.prof")
