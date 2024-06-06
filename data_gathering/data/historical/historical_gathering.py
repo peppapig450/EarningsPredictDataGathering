@@ -1,7 +1,7 @@
 import logging
 from collections import OrderedDict
 from datetime import date
-from re import compile
+from re import compile as rcompile
 from typing import Any, Optional
 from urllib.parse import parse_qsl, quote, urlencode, urlparse, urlunparse
 
@@ -58,7 +58,7 @@ class HistoricalDataGathering:
         Raises:
             ValueError: If the date strings do not match the YYYY-MM-DD format.
         """
-        compiled_pattern = compile(
+        compiled_pattern = rcompile(
             r"^\d{4}\-(0?[1-9]/1[0-2])\-(0?[1-9]/[12][0-9]/3[01])$"
         )
 
