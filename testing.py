@@ -1,21 +1,26 @@
 import asyncio
 import cProfile
+import itertools
 import json
-import re
 import logging
 import pickle
+import re
 import time
+from collections import OrderedDict, defaultdict
 from datetime import date
+from typing import Optional, Any
 from urllib.parse import parse_qsl, quote, urlencode, urlparse, urlunparse
 
+import aiohttp
+import pandas as pd
 import requests
-from aiohttp import ClientSession
 
 from data_gathering.config.api_keys import APIKeys, APIService
 from data_gathering.data.get_upcoming_earnings import UpcomingEarnings
 from data_gathering.data.historical.historical_data_session import \
     HistoricalDataSessionManager
 from data_gathering.models.date_range import DateRange, Unit
+from data_gathering.models.mappings import historical_data_mapping
 from data_gathering.models.symbol_iterator import BatchIteratorWithCount
 from data_gathering.utils.cache.symbols_blacklist import BlacklistSymbolCache
 from data_gathering.utils.logger_setup import setup_logging
@@ -84,7 +89,22 @@ class HistoricalDataGathering:
                 data_dict = await response.json()
                 return data_dict
 
-    async def async_make_api_request(self, session, symbols=None, url=None):
+    async def make_api_request(self, session, symbols: Optional[list[str]] = None, url: Optional[str] = None) -> tuple[dict[str, Any], str]:
+        """
+        Makes an API request to the Alpaca service.
+
+        Args:
+            session (aiohttp.ClientSession): The aiohttp session to be used for the request.
+            symbols (Optional[List[str]]): A list of stock symbols to gather data for.
+            url (Optional[str]): A complete URL to gather data from.
+
+        Returns:
+            Tuple[Dict[str, Any], str]: The response data and the complete URL.
+
+        Raises:
+            ValueError: If neither symbols nor a URL are provided.
+            RuntimeError: If there is an error gathering data.
+        """
         if symbols is not None:
             symbols_batch = ",".join(symbols)
             encoded_symbols = quote(symbols_batch)
@@ -94,34 +114,48 @@ class HistoricalDataGathering:
         elif url is not None:
             complete_url = url
         else:
-            raise ValueError("Neither symbols batch nor a url passed")
+            raise ValueError("Neither symbols batch nor a url passed.")
 
         try:
             async with session.get(complete_url) as response:
                 data = await response.json()
                 return data, complete_url
-        except Exception as e:
-            raise Exception from e
+        except aiohttp.ClientConnectionError as err:
+            self.logger.error(f"Error: {err} - occured while retrieving data from {complete_url}", exc_info=True)
+        except aiohttp.ClientResponseError as err:
+            self.logger.error(f"Error: {err} - occured while retrieving data from {complete_url}", exc_info=True)
 
-    async def handle_data_pagination(self, session, data, complete_url):
-        data_dict = {}
-        if data and complete_url:
-            data_dict.update(data["bars"])
+    async def handle_response_pagination(self, session, data, url: str):
+        """
+        Handles the pagination for API responses.
+
+        Args:
+            session (aiohttp.ClientSession): The aiohttp session to be used for the requests.
+            data (Dict[str, Any]): The initial response data.
+            url (str): The complete URL for the request.
+
+        Returns:
+            OrderedDict: The complete data gathered from all pages.
+        """
+        data_dict = OrderedDict()
+        if data and url:
+            data_dict.update(data.get("bars", None))
             next_page_token = data.get("next_page_token", None)
 
             while next_page_token:
-                self.logger.info("Getting pagination for %s with %s", complete_url, next_page_token)
+                self.logger.debug(f"Getting pagination for {url} with {next_page_token}")
 
-                parsed_url = urlparse(complete_url) # Parse the url
-                query_params = parse_qsl(parsed_url.query) # Split the query parameters
+                # Parse the url
+                parsed_url = urlparse(url)
+                query_params = parse_qsl(parsed_url.query) # split the query
 
-                # Insert the 'next_page_token' before the 'sort' parameter
+                # Insert the 'next_page_token' before the 'sort parameter
                 for i, (key, value) in enumerate(query_params):
                     if key == "sort":
                         query_params.insert(i, ("page_token", next_page_token))
                         break
                 else:
-                    # If 'sort' parameter not found, append the 'page_token' at the end
+                    # If 'sort' parameter not found, append the 'next_page_token' at the end
                     query_params.append(("page_token", next_page_token))
 
                 # Encode the next query params
@@ -130,96 +164,26 @@ class HistoricalDataGathering:
                 # Reconstruct the url with the 'page_token' added
                 new_url = urlunparse(
                     (
-                    parsed_url.scheme,
-                    parsed_url.netloc,
-                    parsed_url.path,
-                    parsed_url.params,
-                    new_query,
-                    parsed_url.fragment,
+                        parsed_url.scheme,
+                        parsed_url.netloc,
+                        parsed_url.path,
+                        parsed_url.params,
+                        new_query,
+                        parsed_url.fragment
                     )
                 )
 
-                new_data, _ = await self.async_make_api_request(session, url=new_url)
-                data_dict.update(new_data["bars"])
-                next_page_token = new_data.get("next_page_token", None)
+                new_data, _ = await self.make_api_request(session, url=new_url)
+                data_dict.update(new_data.get("bars", {}))
 
-        return data_dict
+                if data_dict is not None:
+                    next_page_token = new_data.get("next_page_token", None)
+                else:
+                    self.logger.error("Something went wrong with the pagination", stack_info=True)
+                    raise RuntimeError("Error while paginating through the data requests.")
 
+            return data_dict
 
-    def determine_rerun_request(
-        self,
-        data,
-        complete_url,
-    ):
-
-        data_dict = {}
-        data_dict.update(data["bars"])
-        next_page_token = data.get("next_page_token", None)
-
-        while next_page_token:
-            self.logger.info(
-                "Getting pagination for %s with %s", complete_url, next_page_token
-            )
-
-            parsed_url = urlparse(complete_url)  # Parse the URL
-            query_params = parse_qsl(parsed_url.query)  # Split the query parameters
-
-            # Insert the next_page_token before the 'sort' parameter
-            for i, (key, value) in enumerate(query_params):
-                if key == "sort":
-                    query_params.insert(i, ("page_token", next_page_token))
-                    break
-            else:
-                # If 'sort' parameter not found, append the 'page_token' at the end
-                query_params.append(("page_token", next_page_token))
-
-            # Encode the new query params
-            new_query = urlencode(query_params, doseq=True)
-
-            # Reconstruct the url with the page_token added
-            new_url = urlunparse(
-                (
-                    parsed_url.scheme,
-                    parsed_url.netloc,
-                    parsed_url.path,
-                    parsed_url.params,
-                    new_query,
-                    parsed_url.fragment,
-                )
-            )
-
-            new_data, _ = self.make_api_request(symbols=None, url=new_url)
-            data_dict.update(new_data["bars"])
-            next_page_token = new_data.get("next_page_token", None)
-
-        return data_dict
-
-    def make_api_request(self, symbols=None, url=None):
-        if symbols is not None:
-            symbols_batch = ",".join(symbols)
-            encoded_symbols = quote(symbols_batch)
-            base_url: str = "https://data.alpaca.markets/v2/stocks/bars"
-            # TODO: add asof today
-            rest_of_url: str = (
-                f"&timeframe=1Day&start={self.from_date}&end={self.to_date}&limit=10000&feed=sip&sort=asc"
-            )
-            complete_url: str = f"{base_url}?symbols={encoded_symbols}{rest_of_url}"
-        elif url is not None:
-            complete_url = url
-        else:
-            raise ValueError("Neither symbols batch nor a url passed")
-
-        headers = self.get_headers()
-
-        try:
-            response = requests.get(complete_url, headers=headers)
-            response.raise_for_status()
-            data = response.json()
-            self.logger.info("Gathered data")
-
-            return data, complete_url
-        except Exception as e:
-            raise Exception from e
 
 
 async def gather_data(symbols_batches, api_keys, to_date, cache, session_manager):
@@ -240,13 +204,12 @@ async def gather_data(symbols_batches, api_keys, to_date, cache, session_manager
         api_keys, to_date=to_date, cache=cache, session_manager=session_manager
     )
     async with session_manager.manage_session() as session:
-        pagination_event = asyncio.Event()
 
         tasks = []
         for batch, _ in symbols_batches:
             # Create a task for each batch of symbol
             tasks.append(asyncio.create_task(
-                gather_data_for_batch(batch, session, data_collector, pagination_event)
+                gather_data_for_batch(batch, session, data_collector)
             ))
 
         # Await the completion of all tasks
@@ -256,7 +219,7 @@ async def gather_data(symbols_batches, api_keys, to_date, cache, session_manager
     # Combine all the results for now
     return data_results
 
-async def gather_data_for_batch(symbols, session, data_collector, pagination_event):
+async def gather_data_for_batch(symbols, session, data_collector):
     """
     Gathers data for a batch of symbols.
 
@@ -264,38 +227,64 @@ async def gather_data_for_batch(symbols, session, data_collector, pagination_eve
         symbols (List[str]): The list of stock symbols to gather data for.
         session: The aiohttp session to be used for the requests.
         data_collector: The HistoricalDataGathering object for data collection.
-        pagination_task: The task responsible for pagination handling.
 
     Returns:
         List[Dict[str, Any]]: The complete data gathered for the batch.
     """
-    initial_data, complete_url = await data_collector.async_make_api_request(session, symbols=symbols)
+    pagination_event = asyncio.Event()
+
+    initial_data, complete_url = await data_collector.make_api_request(session, symbols=symbols)
 
     if initial_data.get("next_page_token", None) is not None:
         # If pagination is needed, await the pagination task
         pagination_event.set()
 
     # Process the initial data
-    complete_data = await data_collector.handle_data_pagination(session, initial_data, complete_url)
+    complete_data = await data_collector.handle_response_pagination(session, initial_data, complete_url)
 
     return complete_data
 
+def rename_columns(response_data):
+    formatted_data = defaultdict(list)
+    for batch in response_data:
+        for symbol, data in batch.items():
+            for i, bar in enumerate(data):
+                renamed_bar = {historical_data_mapping[key]: val for key, val in bar.items() if key in historical_data_mapping}
+                renamed_bar["symbol"] = symbol
+                data[i] = renamed_bar
 
+            formatted_data[symbol] = data
+
+    return formatted_data
+
+
+def create_dataframes(data_symbols):
+    data_list = list(
+        itertools.chain.from_iterable(data_symbols.values())
+    )
+    df = pd.DataFrame(data_list)
+
+    if set(["symbol", "timestamp"]).issubset(df.columns):
+        df["timestamp"] = pd.to_datetime(df["timestamp"])
+        df.set_index(["symbol", "timestamp"], inplace=True)
+    return df
 
 
 async def check_speed(symbols_iterator, api_keys, cache, session_manager, to_date="2024-05-04"):
     complete_data = await gather_data(symbols_iterator, api_keys, to_date, cache, session_manager)
+    with open("output_data.pkl", "wb") as f:
+        pickle.dump(complete_data, f)
     return complete_data
 
-
-if __name__ == "__main__":
+async def run_stuff():
     setup_logging()
     api_keys = APIKeys(load_from="config")
+    to_date = "2024-05-05"
 
     cache = BlacklistSymbolCache()
     upcoming_dates = DateRange.get_dates(
         init_offset=1,
-        date_window=14,
+        date_window=80,
         init_unit=Unit.DAYS,
         date_window_unit=Unit.DAYS,
     )
@@ -307,4 +296,12 @@ if __name__ == "__main__":
     symbols_iterator = BatchIteratorWithCount(symbols, fraction=0.025)
     session_manager = HistoricalDataSessionManager(api_keys)
 
-    cProfile.run("asyncio.run(check_speed(symbols_iterator, api_keys, cache, session_manager))", filename="output-async.prof")
+    complete_data = await gather_data(symbols_iterator, api_keys, to_date, cache, session_manager)
+    rename_data = rename_columns(complete_data)
+    dataframe = create_dataframes(rename_data)
+
+    print(dataframe.info(verbose=True))
+
+
+if __name__ == "__main__":
+    cProfile.run("asyncio.run(run_stuff())", filename="output-async.prof")
