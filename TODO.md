@@ -67,7 +67,7 @@ def calculate_sleep_time(rate_limit, next_limit_change, remaining_requests, buff
 
 ## Actual TODO in program:
 
-- [ ] Figure out the most optimial way to handle the concurrent gathering and processing (figure out how to use Queues, maybe change_executor with async, threadpool, shared manager, task groups)
+- [ ] Figure out the most optimial way to handle the concurrent gathering and processing (figure out how to use Queues, maybe change_executor with async, threadpool, shared manager, task groups) [See this for more](./IDEAS.md)
 - [ ] Figure out how to use the returned headers for rate limiting
 - [ ] Use another json library if performance becomes too slow (orjson, ujson)
 
@@ -89,9 +89,11 @@ def calculate_sleep_time(rate_limit, next_limit_change, remaining_requests, buff
 - Look into context managers
 
 ## Ideas
-- custom JSON decoder for requests/aiohttp
+- ~~custom JSON decoder for requests/aiohttp~~
 
 ## Research for Data Analysis program
 - [X] Explore Parquet for data output for time series
 - [ ] Combination of parquet and Sql
 - [ ] Julia, ~~Scala, or Clojure~~ for actual analysis program
+
+##
