@@ -122,8 +122,6 @@ class HistoricalDataGathering:
             self.logger.error(f"Error: {err} - occured while retrieving data from {complete_url}", exc_info=True)
         except aiohttp.ClientResponseError as err:
             self.logger.error(f"Error: {err} - occured while retrieving data from {complete_url}", exc_info=True)
-        finally:
-            raise RuntimeError("Something went wrong gathering data.")
 
     async def handle_response_pagination(self, session, data, url: str):
         """
@@ -167,6 +165,7 @@ class HistoricalDataGathering:
                         parsed_url.scheme,
                         parsed_url.netloc,
                         parsed_url.path,
+                        parsed_url.params,
                         new_query,
                         parsed_url.fragment
                     )
