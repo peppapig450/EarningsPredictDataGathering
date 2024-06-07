@@ -3,6 +3,8 @@
 ## Global Sleeping and maximum efficiency
 - Change from using 1 manager for both process pools to using a central broker that holds two seperate managers
 
+- if sleep is neeeded, increase the rate at which we send data to the processing queue to minimize time we're doing nothing.
+
 ## like this
 
 ### Improved Multiprocessing Structure with Sub-Managers
