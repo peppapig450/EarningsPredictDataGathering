@@ -14,6 +14,9 @@ from urllib.parse import parse_qsl, quote, urlencode, urlparse, urlunparse
 import aiohttp
 import pandas as pd
 import requests
+import pyarrow as pa
+import pyarrow.parquet as pq
+from pyarrow import compute
 
 from data_gathering.config.api_keys import APIKeys, APIService
 from data_gathering.data.get_upcoming_earnings import UpcomingEarnings
@@ -269,6 +272,35 @@ def create_dataframes(data_symbols):
         df.set_index(["symbol", "timestamp"], inplace=True)
     return df
 
+def create_pyarrow_table(data_symbols):
+    data_list = list(itertools.chain.from_iterable(data_symbols.values()))
+
+    # Convert the list of dictionaries to a PyArrow Table
+    table = pa.Table.from_pylist(data_list)
+
+    # Convert the timestamp column to a PyArrow timestamp type
+    table = table.set_column(
+        table.schema.get_field_index("timestamp"),
+        "timestamp",
+        compute.strptime(table.column("timestamp"), format="%Y-%m-%d%T%H:%M:%SZ", unit='s')
+    )
+
+    schema = pa.schema([
+        ('symbol', pa.string()),
+        ('timestamp', pa.timestamp('s')),
+        ('close_price', pa.float64()),
+        ('high_price', pa.float64()),
+        ('low_price', pa.float64()),
+        ('num_of_trades', pa.int64()),
+        ('open_price', pa.float64()),
+        ('volume', pa.int64()),
+        ('vol_weighted_avg_price', pa.float64()),
+    ])
+
+    # Cast the table count to the schema
+    table = table.cast(schema)
+
+    return table
 
 async def check_speed(symbols_iterator, api_keys, cache, session_manager, to_date="2024-05-04"):
     complete_data = await gather_data(symbols_iterator, api_keys, to_date, cache, session_manager)
@@ -298,10 +330,14 @@ async def run_stuff():
 
     complete_data = await gather_data(symbols_iterator, api_keys, to_date, cache, session_manager)
     rename_data = rename_columns(complete_data)
-    dataframe = create_dataframes(rename_data)
+    #arrow_table = create_pyarrow_table(rename_data)
 
-    print(dataframe.info(verbose=True))
+    df = create_dataframes(rename_data)
+    df.to_parquet('data.parquet')
 
+    table = pq.read_table('data.parquet', use_pandas_metadata=True)
+    print(table.schema)
+    print(table.slice(0, 5))
 
 if __name__ == "__main__":
     cProfile.run("asyncio.run(run_stuff())", filename="output-async.prof")
