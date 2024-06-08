@@ -1,32 +1,42 @@
+import logging
 import re
-from typing import List, Optional
+from typing import Optional
 
 import requests
 from pydantic import ValidationError
 
 from data_gathering.config.api_keys import APIKeys, APIService
+from data_gathering.models.exceptions import NoUpcomingEarningsError
 from data_gathering.models.upcoming_earning import UpcomingEarning
 from data_gathering.utils.cache.symbols_blacklist import BlacklistSymbolCache
-from data_gathering.models.exceptions import NoUpcomingEarningsError
 
 
 class UpcomingEarnings:
     """
-    Initializes the UpcomingEarnings instance.
+    A class to retrieve upcoming earnings data.
 
-    Args:
-        api_keys (APIKeys): An instance of APIKeys containing the necessary API key.
-        cache (BlacklistSymbolCache): An instance of BlacklistSymbolCache for caching blacklisted symbols.
+    Attributes:
+        api_key (str): The API key for accessing the financial modeling prep API.
+        cache (BlacklistSymbolCache): Cache for blacklisted symbols.
+        base_url (str): The base URL for the financial modeling prep API.
+        logger (logging.Logger): Logger for the class.
+
+    Methods:
+        get_upcoming_earnings_list(from_date: str, to_date: str, timeout: Optional[int] = 20) -> List[UpcomingEarning]:
+            Retrieves a list of upcoming earnings within a specified date range.
+        get_upcoming_earnings_list_strings(from_date: str, to_date: str, timeout: Optional[int] = 20) -> List[str]:
+            Retrieves upcoming earnings symbols as strings within a specified date range.
     """
 
     def __init__(self, api_keys: APIKeys, cache: BlacklistSymbolCache):
         self.api_key = api_keys.get_key(APIService.FMP)
         self.cache = cache
         self.base_url = "https://financialmodelingprep.com/api/v3/earning_calendar"
+        self.logger = logging.getLogger(__name__)
 
     def get_upcoming_earnings_list(
         self, from_date: str, to_date: str, timeout: Optional[int] = 20
-    ) -> List[UpcomingEarning]:
+    ) -> list[UpcomingEarning]:
         """
         Retrieves a list of upcoming earnings within a specified date range.
 
@@ -39,10 +49,9 @@ class UpcomingEarnings:
             List[UpcomingEarning]: A list of UpcomingEarning objects representing upcoming earnings data.
 
         Raises:
-            RuntimeError: If an error occurs during the retrieval process.
-                - If the response status code indicates an error.
-                - If the response data does not match the expected format.
-                - If there are no upcoming earnings data available.
+            NoUpcomingEarningsError: If an error occurs during the retrieval process, or if the parsed data is empty.
+                - If the response status code indicates an error (logged).
+                - If the response data does not match the expected format (logged).
         """
         payload = {"from": from_date, "to": to_date, "apikey": self.api_key}
 
@@ -59,18 +68,18 @@ class UpcomingEarnings:
                     and not self.cache.is_blacklisted(item["symbol"])
                 ]
                 if not parsed_data:
-                    raise RuntimeError from NoUpcomingEarningsError(
-                        "Error while retrieving upcoming earnings list."
-                    )
+                    raise NoUpcomingEarningsError()
                 return parsed_data
-            except ValidationError as e:
-                raise RuntimeError from e.with_traceback(e.__traceback__)
-            except requests.exceptions.RequestException as e:
-                raise RuntimeError from e
+            except (ValidationError, requests.exceptions.RequestException) as e:
+                self.logger.critical(
+                    f"Error while retrieving upcoming earnings list: {str(e)}",
+                    exc_info=True,
+                )
+                raise NoUpcomingEarningsError() from e
 
     def get_upcoming_earnings_list_strings(
         self, from_date: str, to_date: str, timeout=20
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Retrieves upcoming earnings symbols as strings within a specified date range.
 
@@ -86,7 +95,7 @@ class UpcomingEarnings:
             List[str]: A list of symbols for upcoming earnings within the specified date range.
 
         Raises:
-            RuntimeError: If an error occurs during the retrieval process.
+            NoUpcomingEarningsError: If an error occurs during the retrieval process.
         """
         earnings_list = self.get_upcoming_earnings_list(from_date, to_date, timeout)
         return [symbols.symbol for symbols in earnings_list]
