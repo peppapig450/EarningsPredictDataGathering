@@ -1,11 +1,12 @@
 import asyncio
+from collections import defaultdict
+from typing import Any, Dict, List
 
 import aiohttp
 import pandas as pd
-from typing import Dict, List, Any
+
 from data_gathering.config.api_keys import APIKeys
 from data_gathering.models.mappings import historical_data_mapping
-from collections import defaultdict
 
 
 class HistoricalData:
@@ -81,7 +82,6 @@ class HistoricalData:
                 except KeyError:
                     # Add symbol to the cache if historical data retrieval fails
                     return None
-
 
     async def fetch_historical_data(self, symbol):
         data = await self.fetch_data(symbol)
