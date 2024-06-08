@@ -81,3 +81,12 @@ While this example provides a basic structure, remember to implement error handl
 if a data gathering task needs to sleep to avoid overwhelming the api
 
 automatically switch to another task that uses a different api
+
+## Use Kafka to stream the parquet to the julia analysis
+
+## Instead of printing out each pagination, once pagination is done print out the number of times we paginated
+Like this
+```text
+Batch {number} processed.
+Paginated {number times}.
+```
