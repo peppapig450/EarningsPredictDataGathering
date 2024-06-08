@@ -7,10 +7,7 @@ from pydantic import ValidationError
 from data_gathering.config.api_keys import APIKeys, APIService
 from data_gathering.models.upcoming_earning import UpcomingEarning
 from data_gathering.utils.cache.symbols_blacklist import BlacklistSymbolCache
-
-
-class NoUpcomingEarningsError(Exception):
-    pass
+from data_gathering.models.exceptions import NoUpcomingEarningsError
 
 
 class UpcomingEarnings:
@@ -48,25 +45,28 @@ class UpcomingEarnings:
                 - If there are no upcoming earnings data available.
         """
         payload = {"from": from_date, "to": to_date, "apikey": self.api_key}
-        response = requests.get(self.base_url, params=payload, timeout=timeout)
-        try:
-            response.raise_for_status()
-            data = response.json()
-            parsed_data = [
-                UpcomingEarning(**item)
-                for item in data
-                if not re.search(r"[-.][A-Z]+$", item["symbol"])
-                and not self.cache.is_blacklisted(item["symbol"])
-            ]
-            if not parsed_data:
-                raise RuntimeError from NoUpcomingEarningsError(
-                    "Error while retrieving upcoming earnings list."
-                )
-            return parsed_data
-        except ValidationError as e:
-            raise RuntimeError from e.with_traceback(e.__traceback__)
-        except requests.exceptions.RequestException as e:
-            raise RuntimeError from e
+
+        with requests.get(self.base_url, params=payload, timeout=timeout) as response:
+            response.raise_for_status()  # Raise for non-2xx status codes
+
+            try:
+                response.raise_for_status()
+                data = response.json()
+                parsed_data = [
+                    UpcomingEarning(**item)
+                    for item in data
+                    if not re.search(r"[-.][A-Z]+$", item["symbol"])
+                    and not self.cache.is_blacklisted(item["symbol"])
+                ]
+                if not parsed_data:
+                    raise RuntimeError from NoUpcomingEarningsError(
+                        "Error while retrieving upcoming earnings list."
+                    )
+                return parsed_data
+            except ValidationError as e:
+                raise RuntimeError from e.with_traceback(e.__traceback__)
+            except requests.exceptions.RequestException as e:
+                raise RuntimeError from e
 
     def get_upcoming_earnings_list_strings(
         self, from_date: str, to_date: str, timeout=20
