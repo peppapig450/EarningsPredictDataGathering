@@ -16,7 +16,7 @@ async def main():
     with Manager() as manager:
         io_queue = MPQueue()
         cpu_queue = MPQueue()
-        cpu_result_namespace = manager.Namespace()
+        cpu_result_namespace = manager.Namespace()  # XXX: Use value instead?
         cpu_result_namespace.chainmap = ChainMap()
 
         api_keys = APIKeys(load_from="config")
