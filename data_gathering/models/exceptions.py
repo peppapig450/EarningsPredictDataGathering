@@ -1,5 +1,6 @@
 # Custom exceptions
 
+
 def requires_message(warning_class):
     """
     Decorator to enforce message attribute in warning classes.
@@ -12,6 +13,8 @@ def requires_message(warning_class):
     wrapper_init.__qualname__ = orig_init.__qualname__
     warning_class.__init__ = wrapper_init
     return warning_class
+
+
 @requires_message
 class NoUpcomingEarningsError(Exception):
     """
@@ -43,5 +46,3 @@ class NoUpcomingEarningsError(Exception):
         """
         super().__init__(message)
         raise RuntimeError from self
-
-class
