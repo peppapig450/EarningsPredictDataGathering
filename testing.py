@@ -303,11 +303,14 @@ async def run_stuff():
     rename_data = rename_columns(complete_data)
 
     df = create_dataframes(rename_data)
-    df.to_parquet('data.parquet')
+    #df.to_parquet('data.parquet')
 
-    table = pq.read_table('data.parquet', use_pandas_metadata=True)
-    print(table.schema)
-    print(table.slice(0, 5))
+    print(df.info(verbose=True))
+    print(df.shape)
+
+    #table = pq.read_table('data.parquet', use_pandas_metadata=True)
+    #print(table.schema)
+    #print(table.slice(0, 5))
 
 if __name__ == "__main__":
     cProfile.run("asyncio.run(run_stuff())", filename="output-async.prof")
