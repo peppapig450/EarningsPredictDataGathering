@@ -1,9 +1,9 @@
-from threading import RLock
 import logging
 from functools import wraps
-from cache import Cache
-from typing import Callable, Type, Any
+from threading import RLock
+from typing import Any, Callable, Type
 
+from cache import Cache
 
 type CacheMethod = Callable[..., Any]
 type CacheDecorator = Callable[..., Any]
