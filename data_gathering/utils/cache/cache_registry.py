@@ -17,6 +17,7 @@ class CacheRegistry:
     def __init__(self) -> None:
         self._cache_objects: dict[Type[Cache], Cache] = {}
         self._locks: dict[Type[Cache], RLock] = {}
+        self._global_lock = RLock()
 
     def cache_decorator(self, cache_class: Type[Cache]) -> Any:
         """
@@ -57,15 +58,22 @@ class CacheRegistry:
         :return: The cache object of the specified class.
         """
         if not issubclass(cache_class, Cache):
-            warning_msg = f"{cache_class} is not a subclass of Cache. Caching with this object may not work properly."
-            logger.warning(warning_msg, Warning)
+            logger.warning(
+                f"{cache_class} is not a subclass of Cache. Caching with this object may not work properly."
+            )
             return None
 
-        with self.get_lock(cache_class):
+        lock = self.get_lock(cache_class)
+        acquired = lock.acquire(blocking=False)
+        try:
             if cache_class not in self._cache_objects:
-                cache_obj = cache_class()  # Create a new instance of the cache class
+                cache_obj = cache_class()
                 self._cache_objects[cache_class] = cache_obj
-            return self._cache_objects[cache_class]
+        finally:
+            if acquired:
+                lock.release()
+
+        return self._cache_objects[cache_class]
 
     def get_lock(self, cache_class: Type[Cache]) -> RLock:
         """
@@ -81,9 +89,10 @@ class CacheRegistry:
         if not issubclass(cache_class, Cache):
             warning_msg = f"{cache_class} is not a subclass of Cache. Caching with this object may not work properly."
             logger.warning(warning_msg, Warning)
-            return (
-                RLock()
-            )  # Return a new RLock if the cache class is not a subclass of Cache
+            return RLock()
+            # Return a new RLock if the cache class is not a subclass of Cache
 
-        with self._locks.get(cache_class, RLock()):
+        with self._global_lock:
+            if cache_class not in self._locks:
+                self._locks[cache_class] = RLock()
             return self._locks[cache_class]

@@ -108,8 +108,8 @@ def test_cache_decorator(cache_registry, temp_cache_dir, mocker):
         cache,
         arg1,
         arg2,
-    ) = decorated_func("arg_value1", "arg2_value")
+    ) = decorated_func("arg_value1", "arg_value2")
 
     assert isinstance(cache, MockCache)
-    assert arg1 == "arg1_value"
-    assert arg2 == "arg2_value"
+    assert arg1 == "arg_value1"
+    assert arg2 == "arg_value2"
