@@ -3,7 +3,7 @@ from functools import wraps
 from threading import RLock
 from typing import Any, Callable, Type
 
-from cache import Cache
+from .cache import Cache
 
 type CacheMethod = Callable[..., Any]
 type CacheDecorator = Callable[..., Any]
@@ -18,7 +18,7 @@ class CacheRegistry:
         self._cache_objects: dict[Type[Cache], Cache] = {}
         self._locks: dict[Type[Cache], RLock] = {}
 
-    def cache_decorator(self, func: CacheMethod) -> Any:
+    def cache_decorator(self, cache_class: Type[Cache]) -> Any:
         """
         Decorator to wrap functions with cache handling.
 
@@ -28,7 +28,7 @@ class CacheRegistry:
         :return: Wrapped function
         """
 
-        def decorator(cache_class: Type[Cache]) -> Any:
+        def decorator(func: CacheMethod) -> Any:
             @wraps(func)
             def wrapper(*args, **kwargs) -> Any:
                 # Use the registry to get the decorated cache object
