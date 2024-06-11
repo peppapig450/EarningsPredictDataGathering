@@ -1,9 +1,11 @@
-import pandas as pd
 from collections import defaultdict
-from data_gathering.models.mappings import historical_data_mapping
 from itertools import chain
 from typing import Any
+
+import pandas as pd
 import pyarrow.parquet as pq
+
+from data_gathering.models.mappings import historical_data_mapping
 
 
 class HistoricalDataProcessing:
