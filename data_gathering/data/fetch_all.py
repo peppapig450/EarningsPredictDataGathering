@@ -54,7 +54,6 @@ async def main():
             # sliding window with itertools? or use look ahead for the io queue
             tasks = [
                 Task(
-                    task_id=1,  # TODO: figure out task id setup ( PID prolly)
                     task_type=TaskType.IO,
                     data_category=current_category,
                     symbols=window,

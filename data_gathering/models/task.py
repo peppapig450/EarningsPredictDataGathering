@@ -1,7 +1,7 @@
 from typing import Any, Optional, Tuple
 
 from .task_meta import DataCategory, RunState, TaskMeta, TaskType
-from .upcoming_earning import UpcomingEarning
+from data_gathering.utils.safe_uuid import generate_safe_uuid
 
 type Window = Tuple[Tuple[Any, ...], int]
 
@@ -11,14 +11,19 @@ class Task(metaclass=TaskMeta):
     A class representing a task with specific attributes and state.
 
     Attributes:
-        task_id (str): The unique identifier of the task.
+        task_id (str): The unique identifier of the task, generated using a safe UUID.
         task_type (TaskType): The type of task (IO or CPU bound).
         data_category (DataCategory): The category of data the task handles.
         state (RunState): The current state of the task (RUN or DONE).
         io_result (Optional[Any]): The result of the IO operation, initially None.
         cpu_result (Optional[Any]): The result of the CPU operation, initially None.
         data_category_class (Optional[str]): The data category class name, assigned by the metaclass.
-        symbols (Symbols): List of symbols related to the task.
+        symbols (Symbols): A window of symbols related to the task.
+        symbols_seen (int): The number of symbols seen.
+
+    Note:
+        The `task_id` is automatically generated using a safe UUID to ensure uniqueness across
+        multiple processes. This ensures each task has a unique identifier without the risk of collisions.
     """
 
     __slots__ = [
@@ -36,7 +41,6 @@ class Task(metaclass=TaskMeta):
     def __init__(
         self,
         *,
-        task_id: int,  # TODO: set as pid
         task_type: TaskType,
         data_category: DataCategory,
         symbols: Window,
@@ -46,12 +50,12 @@ class Task(metaclass=TaskMeta):
         Initializes a Task instance.
 
         Args:
-            task_id (int): The unique identifier of the task.
             task_type (TaskType): The type of task (IO or CPU bound).
             data_category (DataCategory): The category of data the task handles.
-            symbols (List[UpcomingEarning]): List of symbols related to the task.
+            symbols (Window): A window of symbols related to the task.
+            symbols_seen (int): The number of symbols seen.
         """
-        self.task_id: int = task_id
+        self.task_id: str = generate_safe_uuid()
         self.task_type: TaskType = task_type
         self.data_category: DataCategory = data_category
         self.state: RunState = RunState.RUN
