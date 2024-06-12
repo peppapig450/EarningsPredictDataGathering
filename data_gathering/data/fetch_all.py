@@ -6,9 +6,8 @@ from data_gathering.config.api_keys import APIKeys
 from data_gathering.data.get_upcoming_earnings import UpcomingEarnings
 from data_gathering.models.date_range import DateRange, Unit
 from data_gathering.models.symbol_iterator import BatchIteratorWithCount
-from data_gathering.models.task import Task, TaskType
+from data_gathering.models.task import DataCategory, Task, TaskType
 from data_gathering.models.task_handler import TaskHandler
-from data_gathering.models.task_meta import DataCategory
 from data_gathering.utils.cache.cache_registry import CacheRegistry
 
 
@@ -20,7 +19,7 @@ async def main():
         cpu_result_namespace.chainmap = ChainMap()
 
         api_keys = APIKeys(load_from="config")
-        cache =  CacheRegistry()
+        cache = CacheRegistry()
 
         upcoming = UpcomingEarnings(api_keys, cache)
 
