@@ -87,6 +87,7 @@ class HistoricalDataGathering:
         }
 
     # TODO: figure how to use callable to annotate session
+    #TODO: add symbols that return empty data to blacklist cache
     async def make_api_request(self, session, symbols: Optional[list[str]] = None, url: Optional[str] = None) -> tuple[dict[str, Any], str]:
         """
         Makes an API request to the Alpaca service.
@@ -148,7 +149,7 @@ class HistoricalDataGathering:
                 query_params = parse_qsl(parsed_url.query) # split the query
 
                 # Insert the 'next_page_token' before the 'sort parameter
-                for i, (key, value) in enumerate(query_params):
+                for i, (key, _) in enumerate(query_params):
                     if key == "sort":
                         query_params.insert(i, ("page_token", next_page_token))
                         break
