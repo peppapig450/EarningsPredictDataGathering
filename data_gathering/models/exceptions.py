@@ -1,4 +1,10 @@
 # Custom exceptions
+class MissingMessageError(Exception):
+    """
+    Exception raised when a warning class is instantiated without a message argument.
+    """
+
+    pass
 
 
 def requires_message(warning_class):
@@ -8,6 +14,10 @@ def requires_message(warning_class):
     orig_init = warning_class.__init__
 
     def wrapper_init(self, message):
+        if not message:
+            raise MissingMessageError(
+                "Custom Exception classes require a message argument."
+            )
         orig_init(self, message)
 
     wrapper_init.__qualname__ = orig_init.__qualname__
