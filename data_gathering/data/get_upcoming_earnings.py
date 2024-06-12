@@ -34,8 +34,9 @@ class UpcomingEarnings:
         self.api_key = api_keys.get_key(APIService.FMP)
         self.cache_registry = cache_registry
         self.base_url = "https://financialmodelingprep.com/api/v3/earning_calendar"
-        self.logger = logging.getLogger(__name__)    
+        self.logger = logging.getLogger(__name__)
 
+    # TODO: exception groups?
     def get_upcoming_earnings_list(
         self, from_date: str, to_date: str, timeout: Optional[int] = 20
     ) -> list[UpcomingEarning]:
@@ -55,8 +56,14 @@ class UpcomingEarnings:
                 - If the response status code indicates an error (logged).
                 - If the response data does not match the expected format (logged).
         """
+
         @self.cache_registry.cache_decorator(BlacklistSymbolCache)
-        def inner_get_upcoming_earnings_list(cache: BlacklistSymbolCache, from_date: str, to_date: str, timeout: Optional[int] = 20) -> list[UpcomingEarning]:
+        def inner_get_upcoming_earnings_list(
+            cache: BlacklistSymbolCache,
+            from_date: str,
+            to_date: str,
+            timeout: Optional[int] = 20,
+        ) -> list[UpcomingEarning]:
             payload = {"from": from_date, "to": to_date, "apikey": self.api_key}
 
             response = requests.get(self.base_url, params=payload, timeout=timeout)
@@ -79,7 +86,7 @@ class UpcomingEarnings:
                     exc_info=True,
                 )
                 raise NoUpcomingEarningsError() from e
-        
+
         return inner_get_upcoming_earnings_list(from_date, to_date, timeout)
 
     def get_upcoming_earnings_list_strings(
