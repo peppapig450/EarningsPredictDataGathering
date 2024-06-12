@@ -1,5 +1,5 @@
 from collections import deque
-from multiprocessing import Pool, Manager
+from multiprocessing import Manager
 from multiprocessing import Queue as MPQueue
 from multiprocessing.managers import Namespace
 from multiprocessing.pool import Pool as _Pool
@@ -30,7 +30,6 @@ class TaskHandler:
             self.cpu_queue.put(task)
 
     # TODO: look into using imap
-    # TODO: use send to the generator for next batch ?
     def io_worker(self):
         while not self.io_queue.empty():
             task = self.io_queue.get()
