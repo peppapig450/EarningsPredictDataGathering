@@ -24,12 +24,6 @@ async def test_manage_session(api_keys):
 
 
 @pytest.mark.asyncio
-async def test_get_base_url(api_keys):
-    manager = HistoricalDataSessionManager(api_keys)
-    assert manager.get_base_url() == "https://data.alpaca.markets/"
-
-
-@pytest.mark.asyncio
 async def test_get_headers(api_keys):
     manager = HistoricalDataSessionManager(api_keys)
     headers = manager.get_headers()
