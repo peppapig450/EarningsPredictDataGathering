@@ -18,14 +18,11 @@ class HistoricalDataProcessing:
         A dictionary to hold the processed data.
     """
 
-    # queue later
     def __init__(self) -> None:
         """Initialize the HistoricalDataProcessing class with an empty data dictionary."""
         self.data_dict: defaultdict = defaultdict(list)
 
-    # TODO: maybe make response_data an instance variable, (get it from the queue)
-
-    # XXX: find a way to rewrite this im not fw it
+    # TODO: find a way to rewrite this im not fw it
     def rename_columns(self, response_data: list[dict[str, Any]]) -> None:
         """
         Rename the columns in the response data according to a predefined mapping.
@@ -50,12 +47,25 @@ class HistoricalDataProcessing:
 
     def create_dataframe(self, renamed_data) -> pd.DataFrame:
         """
-        Rename the columns in the response data according to a predefined mapping.
+        Create a pandas DataFrame from flattened data with optional timestamp conversion and indexing.
 
         Parameters
         ----------
-        response_data : List[Dict[str, Any]]
-            The data received from an external source, which needs to be processed.
+        renamed_data : dict
+            Dictionary containing renamed columns and their corresponding data as lists.
+
+        Returns
+        -------
+        pd.DataFrame
+            A pandas DataFrame created from the flattened data.
+
+        Notes
+        -----
+        This method assumes the data structure in `renamed_data` has already been processed
+        and flattened into a list format suitable for DataFrame construction.
+
+        If the DataFrame contains columns 'symbol' and 'timestamp', the 'timestamp' column
+        will be converted to datetime format and used as part of the DataFrame index.
         """
         flatted_data_list = list(chain.from_iterable(renamed_data.values()))
 
@@ -83,9 +93,21 @@ class HistoricalDataProcessing:
         """
         dataframe.to_parquet(filename)
 
+    # No type hint for pyarrow tables?
     @staticmethod
     def read_parquet_table(
         filename: str = "historical_data.parquet",
     ):
+        """
+        Read a Parquet table from the specified file.
+
+        Parameters
+        ----------
+        filename : str, optional
+            Path to the Parquet file. Default is "historical_data.parquet".
+
+        Returns:
+        - table: A PyArrow Table object representing the data read from the Parquet file.
+        """
         table = pq.read_table(filename, use_pandas_metadata=True)
         return table
