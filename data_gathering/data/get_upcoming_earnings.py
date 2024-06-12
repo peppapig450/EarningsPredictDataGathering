@@ -8,7 +8,8 @@ from pydantic import ValidationError
 from data_gathering.config.api_keys import APIKeys, APIService
 from data_gathering.models.exceptions import NoUpcomingEarningsError
 from data_gathering.models.upcoming_earning import UpcomingEarning
-from data_gathering.utils.cache.symbols_blacklist import BlacklistSymbolCache
+from data_gathering.utils.cache.blacklist_cache import BlacklistSymbolCache
+from data_gathering.utils.cache.cache_registry import CacheRegistry
 
 
 class UpcomingEarnings:
@@ -17,9 +18,10 @@ class UpcomingEarnings:
 
     Attributes:
         api_key (str): The API key for accessing the financial modeling prep API.
-        cache (BlacklistSymbolCache): Cache for blacklisted symbols.
+        cache_registry (CacheRegistry): The registry to manage cache instances.
         base_url (str): The base URL for the financial modeling prep API.
         logger (logging.Logger): Logger for the class.
+        session (requests.Session): A session object to persist certain parameters across requests.
 
     Methods:
         get_upcoming_earnings_list(from_date: str, to_date: str, timeout: Optional[int] = 20) -> List[UpcomingEarning]:
@@ -28,11 +30,11 @@ class UpcomingEarnings:
             Retrieves upcoming earnings symbols as strings within a specified date range.
     """
 
-    def __init__(self, api_keys: APIKeys, cache: BlacklistSymbolCache):
+    def __init__(self, api_keys: APIKeys, cache_registry: CacheRegistry):
         self.api_key = api_keys.get_key(APIService.FMP)
-        self.cache = cache
+        self.cache_registry = cache_registry
         self.base_url = "https://financialmodelingprep.com/api/v3/earning_calendar"
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger(__name__)    
 
     def get_upcoming_earnings_list(
         self, from_date: str, to_date: str, timeout: Optional[int] = 20
@@ -53,11 +55,12 @@ class UpcomingEarnings:
                 - If the response status code indicates an error (logged).
                 - If the response data does not match the expected format (logged).
         """
-        payload = {"from": from_date, "to": to_date, "apikey": self.api_key}
+        @self.cache_registry.cache_decorator(BlacklistSymbolCache)
+        def inner_get_upcoming_earnings_list(cache: BlacklistSymbolCache, from_date: str, to_date: str, timeout: Optional[int] = 20) -> list[UpcomingEarning]:
+            payload = {"from": from_date, "to": to_date, "apikey": self.api_key}
 
-        with requests.get(self.base_url, params=payload, timeout=timeout) as response:
+            response = requests.get(self.base_url, params=payload, timeout=timeout):
             response.raise_for_status()  # Raise for non-2xx status codes
-
             try:
                 response.raise_for_status()
                 data = response.json()
@@ -65,7 +68,7 @@ class UpcomingEarnings:
                     UpcomingEarning(**item)
                     for item in data
                     if not re.search(r"[-.][A-Z]+$", item["symbol"])
-                    and not self.cache.is_blacklisted(item["symbol"])
+                    and not item["symbol"] in cache
                 ]
                 if not parsed_data:
                     raise NoUpcomingEarningsError()
@@ -76,6 +79,8 @@ class UpcomingEarnings:
                     exc_info=True,
                 )
                 raise NoUpcomingEarningsError() from e
+        
+        return inner_get_upcoming_earnings_list(from_date, to_date, timeout)
 
     def get_upcoming_earnings_list_strings(
         self, from_date: str, to_date: str, timeout=20
