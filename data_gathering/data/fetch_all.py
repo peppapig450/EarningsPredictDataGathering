@@ -9,7 +9,7 @@ from data_gathering.models.symbol_iterator import BatchIteratorWithCount
 from data_gathering.models.task import Task, TaskType
 from data_gathering.models.task_handler import TaskHandler
 from data_gathering.models.task_meta import DataCategory
-from data_gathering.utils.cache.symbols_blacklist import BlacklistSymbolCache
+from data_gathering.utils.cache.cache_registry import CacheRegistry
 
 
 async def main():
@@ -20,7 +20,7 @@ async def main():
         cpu_result_namespace.chainmap = ChainMap()
 
         api_keys = APIKeys(load_from="config")
-        cache = BlacklistSymbolCache()
+        cache =  CacheRegistry()
 
         upcoming = UpcomingEarnings(api_keys, cache)
 
