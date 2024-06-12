@@ -1,9 +1,9 @@
-from typing import Any, Optional, Tuple
+from typing import Any, Optional
 
 from .task_meta import DataCategory, RunState, TaskMeta, TaskType
 from data_gathering.utils.safe_uuid import generate_safe_uuid
 
-type Window = Tuple[Tuple[Any, ...], int]
+type Window = tuple[tuple[Any, ...], int]
 
 
 class Task(metaclass=TaskMeta):
