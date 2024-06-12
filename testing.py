@@ -25,7 +25,7 @@ from data_gathering.data.historical.historical_data_session import \
 from data_gathering.models.date_range import DateRange, Unit
 from data_gathering.models.mappings import historical_data_mapping
 from data_gathering.models.symbol_iterator import BatchIteratorWithCount
-from data_gathering.utils.cache.symbols_blacklist import BlacklistSymbolCache
+from data_gathering.utils.cache.cache_registry import CacheRegistry
 from data_gathering.utils.logger_setup import setup_logging
 
 
@@ -34,7 +34,6 @@ class HistoricalDataGathering:
         self,
         api_keys: APIKeys,
         to_date: str,
-        cache: BlacklistSymbolCache,
         session_manager: HistoricalDataSessionManager,
         from_date: str = "1983-01-01",
 
@@ -43,7 +42,6 @@ class HistoricalDataGathering:
             APIService.ALPACA
         )
         self.from_date, self.to_date = self._validate_and_init_dates(from_date, to_date)
-        self.cache: BlacklistSymbolCache = cache
         self.session_manager: HistoricalDataSessionManager = (
             session_manager  # created by task handler
         )
@@ -189,7 +187,7 @@ class HistoricalDataGathering:
 
 
 
-async def gather_data(symbols_batches, api_keys, to_date, cache, session_manager):
+async def gather_data(symbols_batches, api_keys, to_date, session_manager):
     """
     Gathers data for the specified symbols.
 
@@ -204,7 +202,7 @@ async def gather_data(symbols_batches, api_keys, to_date, cache, session_manager
         List[Dict[str, Any]]: The complete data gathered.
     """
     data_collector = HistoricalDataGathering(
-        api_keys, to_date=to_date, cache=cache, session_manager=session_manager
+        api_keys, to_date=to_date, session_manager=session_manager
     )
     async with session_manager.manage_session() as session:
 
@@ -273,8 +271,8 @@ def create_dataframes(data_symbols):
     return df
 
 
-async def check_speed(symbols_iterator, api_keys, cache, session_manager, to_date="2024-05-04"):
-    complete_data = await gather_data(symbols_iterator, api_keys, to_date, cache, session_manager)
+async def check_speed(symbols_iterator, api_keys, session_manager, to_date="2024-05-04"):
+    complete_data = await gather_data(symbols_iterator, api_keys, to_date, session_manager)
     with open("output_data.pkl", "wb") as f:
         pickle.dump(complete_data, f)
     return complete_data
@@ -284,7 +282,7 @@ async def run_stuff():
     api_keys = APIKeys(load_from="config")
     to_date = "2024-05-05"
 
-    cache = BlacklistSymbolCache()
+    cache = CacheRegistry()
     upcoming_dates = DateRange.get_dates(
         init_offset=1,
         date_window=80,
@@ -299,7 +297,7 @@ async def run_stuff():
     symbols_iterator = BatchIteratorWithCount(symbols, fraction=0.025)
     session_manager = HistoricalDataSessionManager(api_keys)
 
-    complete_data = await gather_data(symbols_iterator, api_keys, to_date, cache, session_manager)
+    complete_data = await gather_data(symbols_iterator, api_keys, to_date, session_manager)
     rename_data = rename_columns(complete_data)
 
     df = create_dataframes(rename_data)
