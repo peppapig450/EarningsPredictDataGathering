@@ -59,7 +59,7 @@ class UpcomingEarnings:
         def inner_get_upcoming_earnings_list(cache: BlacklistSymbolCache, from_date: str, to_date: str, timeout: Optional[int] = 20) -> list[UpcomingEarning]:
             payload = {"from": from_date, "to": to_date, "apikey": self.api_key}
 
-            response = requests.get(self.base_url, params=payload, timeout=timeout):
+            response = requests.get(self.base_url, params=payload, timeout=timeout)
             response.raise_for_status()  # Raise for non-2xx status codes
             try:
                 response.raise_for_status()
