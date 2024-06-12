@@ -3,7 +3,7 @@ import os
 
 
 class Cache:
-    def __init__(self, cache_dir=None, filename="cache.db", writeback=True) -> None:
+    def __init__(self, cache_dir=None, filename="cache", writeback=True) -> None:
         self.cache_dir = cache_dir or os.path.join(self._get_root_directory(), ".cache")
         if not os.path.exists(self.cache_dir):
             os.makedirs(self.cache_dir)
