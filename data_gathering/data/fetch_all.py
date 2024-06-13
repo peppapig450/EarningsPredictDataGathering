@@ -17,7 +17,7 @@ async def main():
         cpu_queue = MPQueue()
         # TODO: result queue for io results??
         cpu_result_namespace = manager.Namespace()
-        cpu_result_namespace.chainmap = ChainMap()
+        cpu_result_namespace.chainmap = ChainMap()  # TODO: dont use chainmap
 
         api_keys = APIKeys(load_from="config")
         cache = CacheRegistry()
