@@ -8,7 +8,9 @@ from .cache import Cache
 
 # XXX: ordered set?
 class BlacklistSymbolCache(Cache):
-    def __init__(self, cache_dir=None, pickle_file="blacklist.pkl") -> None:
+    def __init__(
+        self, cache_dir: os.PathLike | None = None, pickle_file="blacklist.pkl"
+    ) -> None:
         super().__init__(cache_dir)
         self._default_shelf_key = "blacklist"
 

@@ -4,11 +4,10 @@ from data_gathering.utils.file_utils import get_project_root_directory, create_p
 
 
 class Cache:
-    def __init__(self, cache_dir=None, filename="cache", writeback=True) -> None:
-        self.cache_dir = cache_dir or create_path(
-            ".cache",
-            starting_path=get_project_root_directory(return_data_gathering=True),
-        )
+    def __init__(
+        self, cache_dir: os.PathLike | None = None, filename="cache", writeback=True
+    ) -> None:
+        self.cache_dir: os.PathLike = cache_dir or self._get_default_cache_directory()
 
         # Ensure cache directory exists
         if not os.path.exists(self.cache_dir):
@@ -43,9 +42,11 @@ class Cache:
         """Write back cached entries to disk (if writeback is enabled)"""
         self._cache.sync()
 
-    # TODO: maybe move to a utility file
-    def _get_root_directory(self):
-        script_path = os.path.abspath(__file__)
-        script_dir = os.path.dirname(script_path)
-        root_dir = os.path.dirname(script_dir)
-        return root_dir
+    def _get_default_cache_directory(self) -> os.PathLike:
+        """Use file_utils methods to get the default cache directory"""
+        cache_path = create_path(
+            ".cache",
+            starting_path=get_project_root_directory(return_data_gathering=True),
+            check_exists=False,
+        )
+        return cache_path
