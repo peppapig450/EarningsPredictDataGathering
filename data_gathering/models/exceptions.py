@@ -35,14 +35,14 @@ class NoUpcomingEarningsError(Exception):
                        that the parsed data is empty.
 
     Methods:
-        __init__(self, message="Error occured while retrieving upcoming earnings list. parsed_data empty."):
+        __init__(self, message):
             Initializes the NoUpcomingEarningsError with a specific error message.
             Raises a RuntimeError chained from this exception.
     """
 
     def __init__(
         self,
-        message="Error occured while retrieving upcoming earnings list. parsed_data empty.",
+        message=None,
     ):
         """
         Constructs the NoUpcomingEarningsError with the given error message.
@@ -54,5 +54,27 @@ class NoUpcomingEarningsError(Exception):
         Raises:
             RuntimeError: An exception that is raised from this NoUpcomingEarningsError.
         """
+        if message is None:
+            self.message = "Error occured while retrieving upcoming earnings list. parsed_data empty."
+        else:
+            self.message = message
+
         super().__init__(message)
         raise RuntimeError from self
+
+
+class ConfigLoadError(Exception):
+    """
+    Exception raised for errors occurring during the loading of configuration files.
+
+    This exception is specifically raised in response to:
+    - FileNotFoundError: When the configuration file cannot be found.
+    - yaml.YAMLError: When there is an error parsing the YAML configuration file.
+
+    Attributes:
+    -----------
+    message : str
+        The error message describing the cause of the exception.
+    """
+
+    pass
