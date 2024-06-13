@@ -16,7 +16,9 @@ class Cache:
         self.filepath = os.path.join(self.cache_dir, filename)
 
         # Open shelve for caching
-        self._cache = shelve.open(self.filepath, writeback=writeback)
+        self._cache = shelve.open(
+            self.filepath, writeback=writeback
+        )  # XXX: context lib?
 
     def __contains__(self, key):
         """Check if a key exists in the cache (without loading the value)"""
