@@ -1,14 +1,22 @@
 import shelve
 import os
+from data_gathering.utils.file_utils import get_project_root_directory, create_path
 
 
 class Cache:
     def __init__(self, cache_dir=None, filename="cache", writeback=True) -> None:
-        self.cache_dir = cache_dir or os.path.join(self._get_root_directory(), ".cache")
+        self.cache_dir = cache_dir or create_path(
+            ".cache",
+            starting_path=get_project_root_directory(return_data_gathering=True),
+        )
+
+        # Ensure cache directory exists
         if not os.path.exists(self.cache_dir):
-            os.makedirs(self.cache_dir)
+            os.makedirs(str(self.cache_dir))
+
         self.filepath = os.path.join(self.cache_dir, filename)
 
+        # Open shelve for caching
         self._cache = shelve.open(self.filepath, writeback=writeback)
 
     def __contains__(self, key):
