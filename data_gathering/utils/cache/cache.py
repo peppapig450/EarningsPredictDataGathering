@@ -35,6 +35,7 @@ class Cache:
         """Write back cached entries to disk (if writeback is enabled)"""
         self._cache.sync()
 
+    # TODO: maybe move to a utility file
     def _get_root_directory(self):
         script_path = os.path.abspath(__file__)
         script_dir = os.path.dirname(script_path)
