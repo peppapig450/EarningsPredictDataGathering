@@ -7,4 +7,4 @@ date_variables:
     date_window_unit: DAYS # both this and init_unit use the "Unit" enum from `data_gathering.models.date_range`
   historical_data:
     from_date: "1983-01-01"
-    to_date: !!str TODAY
+    to_date: !TODAY { { CURRENT_DATE } }
