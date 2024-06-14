@@ -52,14 +52,12 @@ def test_task_initialization():
     symbols_window, _ = next(iterator)
     symbols_seen = 1  # Starting with 1 because we've already consumed one batch
     task = MockTask(
-        task_id=1,
         task_type=TaskType.IO,
         data_category=DataCategory.HISTORICAL,
         symbols=symbols_window,
         symbols_seen=symbols_seen,
     )
 
-    assert task.task_id == 1
     assert task.task_type == TaskType.IO
     assert task.data_category == DataCategory.HISTORICAL
     assert task.state == RunState.RUN
@@ -72,7 +70,6 @@ def test_task_initialization():
     for batch, count in iterator:
         symbols_seen = count
         task = MockTask(
-            task_id=1,  # TODO: figure out task id setup ( PID prolly)
             task_type=TaskType.IO,
             data_category=DataCategory.HISTORICAL,
             symbols=batch,
@@ -82,9 +79,8 @@ def test_task_initialization():
 
 def test_task_meta_missing_methods():
     class IncompleteTask(Task):
-        def __init__(self, *, task_id, task_type, data_category, symbols, symbols_seen):
+        def __init__(self, *, task_type, data_category, symbols, symbols_seen):
             super().__init__(
-                task_id=task_id,
                 task_type=task_type,
                 data_category=data_category,
                 symbols=symbols,
@@ -103,7 +99,6 @@ def test_task_meta_missing_methods():
         match="Class 'IncompleteTask' must implement 'run_io' and 'run_cpu' methods",
     ):
         task = IncompleteTask(
-            task_id=1,
             task_type=TaskType.IO,
             data_category=DataCategory.HISTORICAL,
             symbols=symbols_window,
