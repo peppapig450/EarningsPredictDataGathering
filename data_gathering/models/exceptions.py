@@ -1,4 +1,5 @@
 # Custom exceptions
+# TODO: https://stackoverflow.com/questions/1319615/proper-way-to-declare-custom-exceptions-in-modern-python#answer-60465422
 class MissingMessageError(Exception):
     """
     Exception raised when a warning class is instantiated without a message argument.
