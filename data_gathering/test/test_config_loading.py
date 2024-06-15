@@ -41,17 +41,9 @@ def test_missing_config_file(monkeypatch):
     # Mock the environment variable to point to a non-existing file
     monkeypatch.setenv("CONFIG_FILE", "non_existing_config.yaml")
 
-    # Ensure ConfigLoadError is raised
-    try:
-        # Code that might raise ConfigLoadError
+    with pytest.raises(ConfigLoadError) as exc_info:
         Config().config
-
-    except Exception as e:  # Catch any exception
-        print(f"Exception raised: {type(e)}")
-        print(f"Exception message: {str(e)}")
-    # with pytest.raises(ConfigLoadError) as exc_info:
-    #    Config().config
-    # assert "Config file 'non_existing_config.yaml' not found." in str(exc_info.value)
+    assert "Config file 'non_existing_config.yaml' not found." in str(exc_info.value)
 
 
 def test_invalid_yaml_content(create_temp_file, monkeypatch):
