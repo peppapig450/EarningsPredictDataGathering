@@ -40,7 +40,6 @@ def test_load_valid_config(create_temp_file, monkeypatch):
 def test_missing_config_file(monkeypatch):
     # Mock the environment variable to point to a non-existing file
     monkeypatch.setenv("CONFIG_FILE", "non_existing_config.yaml")
-    spy_open = mockers
 
     # Ensure ConfigLoadError is raised
     try:
