@@ -8,6 +8,7 @@ import yaml
 
 from data_gathering.models.exceptions import ConfigLoadError
 from data_gathering.models.yaml_objects import CurrentDate
+from data_gathering.utils.file_utils import get_file_path_in_project
 
 
 # TODO: look into using pydantic
@@ -62,7 +63,7 @@ class Config:
         config_file = Path(os.getenv("CONFIG_FILE", "config.yaml"))
 
         try:
-            config_file_path = config_file.resolve()
+            config_file_path = Config._get_config_file_path(config_file)
             with open(config_file_path, "r", encoding="utf-8") as file:
                 # Custom yaml object for today's date
                 yaml.SafeLoader.add_constructor("!TODAY", CurrentDate.from_yaml)
@@ -78,6 +79,16 @@ class Config:
                 )
             raise ConfigLoadError(message) from exc
         return config_data
+
+    @staticmethod
+    def _get_config_file_path(config_file: Path):
+        config_file = get_file_path_in_project("config", config_file)
+
+        if config_file.exists():
+            return config_file.resolve()
+        raise FileNotFoundError(
+            f"Something went wrong getting the path to {config_file}"
+        )
 
     def _parse_args(self):
         pass
