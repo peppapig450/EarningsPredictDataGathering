@@ -2,7 +2,7 @@ from pathlib import Path
 
 
 def get_project_root_directory(
-    marker_file="pyproject.toml", return_data_gathering=False
+    marker_file="pyproject.toml", return_data_gathering=True
 ):
     """
     Finds the project root directory by looking for a marker file.
@@ -69,3 +69,28 @@ def create_path(*args, **kwargs):
         raise FileNotFoundError(f"The path {constructed_path} does not exist.")
 
     return constructed_path
+
+
+# TODO: absolute could be used here i think
+def get_file_path_in_project(*path_components, marker_file="pyproject.toml") -> Path:
+    """
+    Retrieves a file path relative to the project root directory.
+
+    Parameters:
+        *path_components: Arbitrary number of path components.
+        marker_file (str): The file that marks the project root directory.
+
+    Returns:
+        Path: The constructed file path.
+
+    Raises:
+        FileNotFoundError: If the project root directory cannot be determined.
+    """
+    try:
+        project_root = get_project_root_directory(marker_file=marker_file)
+    except FileNotFoundError as e:
+        raise FileNotFoundError(f"Failed to determine project root: {e}") from e
+
+    file_path = project_root / Path(*path_components)
+
+    return file_path
