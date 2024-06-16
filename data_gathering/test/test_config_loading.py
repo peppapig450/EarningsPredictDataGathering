@@ -60,7 +60,7 @@ def test_load_full_config(mocker):
         date_window_unit: DAYS
       historical_data:
         from_date: "1983-01-01"
-        to_date: !TODAY '{{ CURRENT DATE }}'
+        to_date: !TODAY 'CURRENT_DATE'
     """
     mocker.patch("builtins.open", mocker.mock_open(read_data=yaml_content))
 
@@ -102,7 +102,7 @@ def test_load_full_config(mocker):
 # Test the replacement of the !TODAY tag with the current date
 def test_today_tag_replacement(mocker):
     yaml_input = """
-    to_date: !TODAY '{{ CURRENT DATE }}'
+    to_date: !TODAY 'CURRENT_DATE'
     """
     expected_date = date.today().strftime("%Y-%m-%d")
 

@@ -83,7 +83,7 @@ class CurrentDate(yaml.YAMLObject):
         data = loader.construct_scalar(node)
 
         # Check if the data is a placeholder value
-        if isinstance(data, str) and data.strip() == "{{ CURRENT DATE }}":
+        if isinstance(data, str) and data.strip() == "CURRENT_DATE":
             today = date.today().strftime("%Y-%m-%d")
             return cls(today)
         return cls(data)
