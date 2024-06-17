@@ -90,5 +90,9 @@ class Config:
             f"Something went wrong getting the path to {config_file}"
         )
 
+    @property
+    def upcoming_earnings_dates(self):
+        return self.config["date_variables"].get("upcoming_earnings", None)
+
     def _parse_args(self):
         pass
