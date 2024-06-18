@@ -16,6 +16,8 @@ class TaskType(Enum):
     CPU = auto()  # task is cpu bound
 
 
+# XXX: look into using a dataclass mixin with the enum to avoid having to use the mapping
+# XXX: or use a plain string enum https://docs.python.org/3/howto/enum.html#enum-dataclass-support
 class DataCategory(Enum):
     """Enumeration to represent different categories of data."""
 
