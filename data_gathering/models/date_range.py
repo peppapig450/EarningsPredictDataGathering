@@ -1,7 +1,7 @@
 # utils.py
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Optional, Self
+from typing import Any, Optional, Self
 from dataclasses import dataclass
 
 
@@ -11,6 +11,22 @@ class TimeUnit(str, Enum):
     QUARTERS = "quarters"
     MONTHS = "months"
     YEARS = "years"
+
+    def __new__(cls, value):
+        # Create a new instance of the enum
+        time_unit = str.__new__(cls, value)
+        # Store the value in lowercase to ensure case insensitivity
+        time_unit._value_ = value.lower()
+        return time_unit
+
+    @classmethod
+    def _missing_(cls, value) -> Any:
+        # Look for a matching enum member in a case-insensitive way
+        for member in cls:
+            if member.value == value.lower():
+                return member
+        # If no match is found, call the superclass method
+        return super()._missing_(value)
 
 
 # TODO: only include valid market days
@@ -61,6 +77,7 @@ class DateRange:
     @staticmethod
     def _get_delta(offset: int, unit: TimeUnit) -> timedelta:
         """Calculates the timedelta based on the offset and unit."""
+        # Mixin with timeunit enum?
         unit_map = {
             TimeUnit.DAYS: timedelta(days=offset),
             TimeUnit.WEEKS: timedelta(weeks=offset),
