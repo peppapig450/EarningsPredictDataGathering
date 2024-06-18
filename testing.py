@@ -22,7 +22,7 @@ from data_gathering.config.api_keys import APIKeys, APIService
 from data_gathering.data.get_upcoming_earnings import UpcomingEarnings
 from data_gathering.data.historical.historical_data_session import \
     HistoricalDataSessionManager
-from data_gathering.models.date_range import DateRange, Unit
+from data_gathering.models.date_range import DateRange, TimeUnit
 from data_gathering.models.mappings import historical_data_mapping
 from data_gathering.models.symbol_iterator import BatchIteratorWithCount
 from data_gathering.utils.cache.cache_registry import CacheRegistry
@@ -286,8 +286,8 @@ async def run_stuff():
     upcoming_dates = DateRange.get_dates(
         init_offset=1,
         date_window=80,
-        init_unit=Unit.DAYS,
-        date_window_unit=Unit.DAYS,
+        init_unit=TimeUnit.DAYS,
+        date_window_unit=TimeUnit.DAYS,
     )
 
     upcoming = UpcomingEarnings(api_keys, cache)

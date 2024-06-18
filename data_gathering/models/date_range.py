@@ -5,7 +5,7 @@ from typing import Optional, Self
 from dataclasses import dataclass
 
 
-class Unit(str, Enum):
+class TimeUnit(str, Enum):
     DAYS = "days"
     WEEKS = "weeks"
     QUARTERS = "quarters"
@@ -28,15 +28,19 @@ class DateRange:
 
     @classmethod
     def create_from_today(
-        cls, init_offset: int, date_window: int, init_unit: Unit, date_window_unit: Unit
+        cls,
+        init_offset: int,
+        date_window: int,
+        init_unit: TimeUnit,
+        date_window_unit: TimeUnit,
     ) -> Self:
         """Creates a DateRange instance starting from today.
 
         Args:
             init_offset (int): The offset from today's date.
             date_window (int): The size of the date window.
-            init_unit (Unit): The unit of the init_offset (days, weeks, or quarters).
-            date_window_unit (Unit): The unit of the date_window (days, weeks, or quarters).
+            init_unit (TimeUnit): The unit of the init_offset (days, weeks, or quarters).
+            date_window_unit (TimeUnit): The unit of the date_window (days, weeks, or quarters).
 
         Returns:
             DateRange: A DateRange instance starting from today with the specified offset and window size.
@@ -55,16 +59,16 @@ class DateRange:
         )
 
     @staticmethod
-    def _get_delta(offset: int, unit: Unit) -> timedelta:
+    def _get_delta(offset: int, unit: TimeUnit) -> timedelta:
         """Calculates the timedelta based on the offset and unit."""
         unit_map = {
-            Unit.DAYS: timedelta(days=offset),
-            Unit.WEEKS: timedelta(weeks=offset),
-            Unit.QUARTERS: timedelta(
+            TimeUnit.DAYS: timedelta(days=offset),
+            TimeUnit.WEEKS: timedelta(weeks=offset),
+            TimeUnit.QUARTERS: timedelta(
                 days=offset * 91
             ),  # Approximation for 13 weeks per quarter
-            Unit.MONTHS: timedelta(days=offset * 30),
-            Unit.YEARS: timedelta(days=offset * 365),
+            TimeUnit.MONTHS: timedelta(days=offset * 30),
+            TimeUnit.YEARS: timedelta(days=offset * 365),
         }
         try:
             return unit_map[unit]
@@ -76,16 +80,16 @@ class DateRange:
         cls,
         init_offset: Optional[int] = None,
         date_window: Optional[int] = None,
-        init_unit: Unit = Unit.DAYS,
-        date_window_unit: Unit = Unit.DAYS,
+        init_unit: TimeUnit = TimeUnit.DAYS,
+        date_window_unit: TimeUnit = TimeUnit.DAYS,
     ) -> Self:
         """Convenience method to get a DateRange instance with default or specified parameters.
 
         Args:
             init_offset (int, optional): The offset from today's date. Defaults to 1 if not provided.
             date_window (int, optional): The size of the date window. Defaults to 7 if not provided.
-            init_unit (Unit, optional): The unit of the init_offset (days, weeks, or quarters). Defaults to Unit.DAYS.
-            date_window_unit (Unit, optional): The unit of the date_window (days, weeks, or quarters). Defaults to Unit.DAYS.
+            init_unit (TimeUnit, optional): The unit of the init_offset (days, weeks, or quarters). Defaults to TimeUnit.DAYS.
+            date_window_unit (TimeUnit, optional): The unit of the date_window (days, weeks, or quarters). Defaults to TimeUnit.DAYS.
 
         Returns:
             DateRange: A DateRange instance based on the provided or default parameters.

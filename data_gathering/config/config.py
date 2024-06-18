@@ -6,6 +6,7 @@ from typing import Any
 
 import yaml
 
+from data_gathering.models.date_range import TimeUnit
 from data_gathering.models.exceptions import ConfigLoadError
 from data_gathering.models.yaml_objects import CurrentDate
 from data_gathering.utils.file_utils import get_file_path_in_project
@@ -92,7 +93,20 @@ class Config:
 
     @property
     def upcoming_earnings_dates(self):
-        return self.config["date_variables"].get("upcoming_earnings", None)
+        upcoming_earnings_config: dict[str, int | str | TimeUnit] = self.config[
+            "date_variables"
+        ].get("upcoming_earnings", None)
+
+        # Convert the unit strings into Unit enum values
+        upcoming_earnings_config["init_unit"] = TimeUnit(
+            upcoming_earnings_config["init_unit"]
+        )
+
+        upcoming_earnings_config["date_window_unit"] = TimeUnit(
+            upcoming_earnings_config["date_window_unit"]
+        )
+
+        return upcoming_earnings_config
 
     def _parse_args(self):
         pass
