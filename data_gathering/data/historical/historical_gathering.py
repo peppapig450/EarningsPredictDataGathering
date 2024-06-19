@@ -9,19 +9,20 @@ import aiohttp
 from .historical_data_session import HistoricalDataSessionManager
 
 from data_gathering.config.api_keys import APIKeys, APIService
-from data_gathering.utils.cache.symbols_blacklist import BlacklistSymbolCache
 
 type window = tuple[Any, ...]
 
-
+# XXX: cache temporarily commented out as its not used.
+# TODO: implement caching to properly blacklist symbols with no data
 class HistoricalDataGathering:
     def __init__(
         self,
         api_keys: APIKeys,
         to_date: str,
-        cache: BlacklistSymbolCache,
         session_manager: HistoricalDataSessionManager,
         from_date: str = "1983-01-01",
+       # cache: BlacklistSymbolCache | None = None,
+
     ) -> None:
         """
         Initializes the HistoricalDataGathering object.
@@ -38,7 +39,7 @@ class HistoricalDataGathering:
         )
 
         self.from_date, self.to_date = self._validate_and_init_dates(from_date, to_date)
-        self.cache: BlacklistSymbolCache = cache
+        #self.cache: BlacklistSymbolCache = cache
         self.session_manager: HistoricalDataSessionManager = (
             session_manager  # created by task handler
         )
