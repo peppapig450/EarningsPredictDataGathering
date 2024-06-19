@@ -6,7 +6,7 @@ from typing import Any, Optional
 from urllib.parse import parse_qsl, quote, urlencode, urlparse, urlunparse
 
 import aiohttp
-from historical_data_session import HistoricalDataSessionManager
+from .historical_data_session import HistoricalDataSessionManager
 
 from data_gathering.config.api_keys import APIKeys, APIService
 from data_gathering.utils.cache.symbols_blacklist import BlacklistSymbolCache
@@ -87,7 +87,7 @@ class HistoricalDataGathering:
         }
 
     # TODO: figure how to use callable to annotate session
-    #TODO: add symbols that return empty data to blacklist cache
+    # TODO: add symbols that return empty data to blacklist cache
     async def make_api_request(self, session, symbols: Optional[list[str]] = None, url: Optional[str] = None) -> tuple[dict[str, Any], str]:
         """
         Makes an API request to the Alpaca service.
@@ -119,12 +119,13 @@ class HistoricalDataGathering:
             async with session.get(complete_url) as response:
                 data = await response.json()
                 return data, response.url
-        except aiohttp.ClientConnectionError as err:
+        except (aiohttp.ClientConnectionError, aiohttp.ClientResponseError) as err:
             self.logger.error(f"Error: {err} - occured while retrieving data from {complete_url}", exc_info=True)
-        except aiohttp.ClientResponseError as err:
-            self.logger.error(f"Error: {err} - occured while retrieving data from {complete_url}", exc_info=True)
+            return None #TODO: raise custom error here instead
 
-    async def handle_response_pagination(self, session, data, url: str):
+
+    #XXX: refactor this eventually
+    async def handle_response_pagination(self, session, data, url: str) -> OrderedDict | None:
         """
         Handles the pagination for API responses.
 
@@ -136,49 +137,52 @@ class HistoricalDataGathering:
         Returns:
             OrderedDict: The complete data gathered from all pages.
         """
+        if not data and not url:
+            return None
+
         data_dict = OrderedDict()
-        if data and url:
-            data_dict.update(data.get("bars", None))
-            next_page_token = data.get("next_page_token", None)
+        data_dict.update(data.get("bars", None))
+        next_page_token = data.get("next_page_token", None)
 
-            while next_page_token:
-                self.logger.debug(f"Getting pagination for {url} with {next_page_token}")
 
-                # Parse the url
-                parsed_url = urlparse(url)
-                query_params = parse_qsl(parsed_url.query) # split the query
+        while next_page_token:
+            self.logger.debug(f"Getting pagination for {url} with {next_page_token}")
 
-                # Insert the 'next_page_token' before the 'sort parameter
-                for i, (key, _) in enumerate(query_params):
-                    if key == "sort":
-                        query_params.insert(i, ("page_token", next_page_token))
-                        break
-                else:
-                    # If 'sort' parameter not found, append the 'next_page_token' at the end
-                    query_params.append(("page_token", next_page_token))
+            # Parse the url
+            parsed_url = urlparse(url)
+            query_params = parse_qsl(parsed_url.query) # split the query
 
-                # Encode the next query params
-                new_query = urlencode(query_params, doseq=True)
+            # Insert the 'next_page_token' before the 'sort parameter
+            for i, (key, _) in enumerate(query_params):
+                if key == "sort":
+                    query_params.insert(i, ("page_token", next_page_token))
+                    break
+            else:
+                # If 'sort' parameter not found, append the 'next_page_token' at the end
+                query_params.append(("page_token", next_page_token))
 
-                # Reconstruct the url with the 'page_token' added
-                new_url = urlunparse(
-                    (
-                        parsed_url.scheme,
-                        parsed_url.netloc,
-                        parsed_url.path,
-                        parsed_url.params,
-                        new_query,
-                        parsed_url.fragment
-                    )
+            # Encode the next query params
+            new_query = urlencode(query_params, doseq=True)
+
+            # Reconstruct the url with the 'page_token' added
+            new_url = urlunparse(
+                (
+                    parsed_url.scheme,
+                    parsed_url.netloc,
+                    parsed_url.path,
+                    parsed_url.params,
+                    new_query,
+                    parsed_url.fragment
                 )
+            )
 
-                new_data, _ = await self.make_api_request(session, url=new_url)
-                data_dict.update(new_data.get("bars", {}))
+            new_data, _ = await self.make_api_request(session, url=new_url)
+            data_dict.update(new_data.get("bars", {}))
 
-                if data_dict is not None:
-                    next_page_token = new_data.get("next_page_token", None)
-                else:
-                    self.logger.error("Something went wrong with the pagination", stack_info=True)
-                    raise RuntimeError("Error while paginating through the data requests.")
+            if data_dict is not None:
+                next_page_token = new_data.get("next_page_token", None)
+            else:
+                self.logger.error("Something went wrong with the pagination", stack_info=True)
+                raise RuntimeError("Error while paginating through the data requests.")
 
-            return data_dict
+        return data_dict
