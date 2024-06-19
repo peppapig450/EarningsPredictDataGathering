@@ -60,7 +60,7 @@ class HistoricalDataGathering:
             ValueError: If the date strings do not match the YYYY-MM-DD format.
         """
         compiled_pattern = re.compile(
-            r"\b\d{4}-d{2}-\d{2}\b"
+            r"\b\d{4}-\d{2}-\d{2}\b"
         )
 
         #TODO: custom exception
