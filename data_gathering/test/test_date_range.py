@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime, timedelta
-from data_gathering.models.date_range import DateRange, TimeUnit
+from data_gathering.models import DateRange, TimeUnit
 
 
 def test_create_from_today():

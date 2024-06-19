@@ -1,7 +1,13 @@
 import pytest
-from data_gathering.models.task_meta import DataCategory, RunState, TaskMeta, TaskType
-from data_gathering.models.task import Task
-from data_gathering.models.symbol_iterator import BatchIteratorWithCount
+
+from data_gathering.models import (
+    BatchIteratorWithCount,
+    DataCategory,
+    RunState,
+    Task,
+    TaskMeta,
+    TaskType,
+)
 
 
 # Define a mock Task class with run_io and run_cpu methods for testing purposes

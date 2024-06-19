@@ -1,6 +1,6 @@
 from typing import Any
 
-from data_gathering.models.task import DataCategory, Task, TaskMeta, TaskType
+from data_gathering.models import DataCategory, Task, TaskMeta, TaskType
 
 from .historical_gathering import HistoricalDataGathering
 from .historical_data_session import HistoricalDataSessionManager
@@ -22,6 +22,5 @@ class HistoricalDataTask(Task):
             symbols=symbols,
             symbols_seen=symbols_seen,
         )
-        
+
     def run_io(self):
-        

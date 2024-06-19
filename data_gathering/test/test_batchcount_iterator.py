@@ -1,6 +1,6 @@
 import pytest
 from itertools import count
-from data_gathering.models.symbol_iterator import BatchIteratorWithCount
+from data_gathering.models import BatchIteratorWithCount
 
 
 def test_batch_iterator_initialization():

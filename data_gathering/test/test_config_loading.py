@@ -4,7 +4,8 @@ from unittest import mock
 from pathlib import Path
 from datetime import date
 
-from data_gathering.config.config import Config, ConfigLoadError, CurrentDate
+from data_gathering.config import Config
+from data_gathering.models import ConfigLoadError, CurrentDate
 
 
 # Helper function to create a temporary file with the given content
