@@ -1,11 +1,11 @@
 # utils.py
 from datetime import datetime, timedelta
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Optional, Self
 from dataclasses import dataclass
 
 
-class TimeUnit(str, Enum):
+class TimeUnit(StrEnum):
     DAYS = "days"
     WEEKS = "weeks"
     QUARTERS = "quarters"
