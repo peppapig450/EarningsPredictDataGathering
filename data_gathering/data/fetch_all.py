@@ -2,7 +2,7 @@ from collections import ChainMap, deque
 from multiprocessing import Manager, Pool
 from multiprocessing import Queue as MPQueue
 
-from data_gathering.config.api_keys import APIKeys
+from data_gathering.config import Config, APIKeys
 from data_gathering.data.get_upcoming_earnings import UpcomingEarnings
 from data_gathering.models.date_range import DateRange, TimeUnit
 from data_gathering.models.symbol_iterator import BatchIteratorWithCount
@@ -21,6 +21,7 @@ async def main():
 
         api_keys = APIKeys(load_from="config")
         cache = CacheRegistry()
+        config = Config()
 
         upcoming = UpcomingEarnings(api_keys, cache)
 
@@ -31,12 +32,8 @@ async def main():
             io_pool, cpu_pool, io_queue, cpu_queue, cpu_result_namespace
         )
 
-        upcoming_dates = DateRange.get_dates(
-            init_offset=1,
-            date_window=14,
-            init_unit=TimeUnit.DAYS,
-            date_window_unit=TimeUnit.DAYS,
-        )
+        upcoming_dates_config = config.upcoming_earnings_dates
+        upcoming_dates = DateRange.get_dates(**upcoming_dates_config)  # type: ignore
 
         try:
             symbols = upcoming.get_upcoming_earnings_list_strings(
