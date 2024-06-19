@@ -4,7 +4,7 @@ from multiprocessing import Queue as MPQueue
 from multiprocessing.managers import Namespace
 from multiprocessing.pool import Pool as _Pool
 
-from data_gathering.models import DataCategory, RunState, Task, TaskMeta, TaskType
+from . import Task, TaskType
 
 
 class TaskHandler:
