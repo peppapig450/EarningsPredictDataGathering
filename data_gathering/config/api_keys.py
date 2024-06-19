@@ -2,7 +2,7 @@ import configparser
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Tuple, Optional
+from typing import Optional, Sequence
 from enum import Enum, auto
 
 
@@ -13,8 +13,8 @@ class APIService(Enum):
     ALPACA = auto()  # Alpaca
 
 
-type ApiKey = str | Tuple[str, str]
-type APIKeysDict = Dict[APIService, ApiKey]
+type ApiKey = str | Sequence[str]
+type APIKeysDict = dict[APIService, ApiKey]
 
 
 @dataclass
