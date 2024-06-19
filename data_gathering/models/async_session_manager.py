@@ -11,7 +11,7 @@ class AbstractSessionManager(ABC):
     """
 
     def __init__(self) -> None:
-        self.session = None
+        self.session: ClientSession | None = None
 
     @abstractmethod
     def get_headers(self) -> dict[str, str]:
