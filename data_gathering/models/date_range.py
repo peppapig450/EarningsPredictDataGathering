@@ -23,7 +23,7 @@ class TimeUnit(StrEnum):
     def _missing_(cls, value) -> Any:
         # Look for a matching enum member in a case-insensitive way
         for member in cls:
-            if member.value == value.lower():
+            if member.value == str(value).lower():
                 return member
         # If no match is found, call the superclass method
         return super()._missing_(value)
