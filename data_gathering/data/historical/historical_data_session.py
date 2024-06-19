@@ -1,5 +1,5 @@
 from data_gathering.config.api_keys import APIKeys, APIService
-from data_gathering.models.async_session_manager import AbstractSessionManager
+from data_gathering.models import AbstractSessionManager
 
 
 class HistoricalDataSessionManager(AbstractSessionManager):
@@ -8,7 +8,9 @@ class HistoricalDataSessionManager(AbstractSessionManager):
         super().__init__()
 
     def get_headers(self) -> dict[str, str]:
-        _apca_key_id, _apca_api_secret_key = self.api_keys.get_key(APIService.ALPACA)
+        _apca_key_id, _apca_api_secret_key = self.api_keys.get_key(
+            APIService.ALPACA
+        )  # TODO: figure this out
         return {
             "APCA-API-KEY-ID": _apca_key_id,
             "APCA-API-SECRET-KEY": _apca_api_secret_key,
