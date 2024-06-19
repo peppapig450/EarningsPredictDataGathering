@@ -72,6 +72,8 @@ class TaskMeta(type):
         Returns:
             str: The name of the data processor class.
         """
+        # TODO: look into making DataCategory a string enum (StrEnum) so that we dont need this.
+        # XXX: or have a base enum and then a string class enum subclassing that
         mapping: Dict[DataCategory, str] = {
             DataCategory.HISTORICAL: "HistoricalDataTask",
             DataCategory.FUNDAMENTALS: "FundamentalMetricsTask",
