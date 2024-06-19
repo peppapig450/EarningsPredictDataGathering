@@ -1,9 +1,9 @@
 from math import floor
-from typing import List, Tuple, Any, Self
+from typing import Any, Self
 
 from itertools import islice, count
 
-type Symbols = List[str]
+type Symbols = list[str]
 
 
 # TODO: maybe rename
@@ -47,7 +47,7 @@ class BatchIteratorWithCount:
         """
         return self
 
-    def __next__(self) -> Tuple[Tuple[Any, ...], int]:
+    def __next__(self) -> tuple[tuple[Any, ...], int]:
         """
         Returns the next batch of items and the current batch count.
 
