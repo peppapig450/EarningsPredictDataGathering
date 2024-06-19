@@ -5,7 +5,7 @@ from typing import Any
 import pandas as pd
 import pyarrow.parquet as pq
 
-from data_gathering.models.mappings import historical_data_mapping
+from data_gathering.models import historical_data_mapping
 
 
 class HistoricalDataProcessing:
