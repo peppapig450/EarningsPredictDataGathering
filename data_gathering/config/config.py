@@ -93,15 +93,14 @@ class Config:
 
     @property
     def upcoming_earnings_dates(self):
-        upcoming_earnings_config: dict[str, int | str | TimeUnit] = self.config[
+        upcoming_earnings_config: dict[str, int | TimeUnit | None] = self.config[
             "date_variables"
         ].get("upcoming_earnings", None)
 
-        # Convert the unit strings into Unit enum values
+        # Convert the unit strings into TimeUnit enum values
         upcoming_earnings_config["init_unit"] = TimeUnit(
             upcoming_earnings_config["init_unit"]
         )
-
         upcoming_earnings_config["date_window_unit"] = TimeUnit(
             upcoming_earnings_config["date_window_unit"]
         )
