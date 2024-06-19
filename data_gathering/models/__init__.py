@@ -1,4 +1,4 @@
-from .async_session_manager import AsyncGenerator
+from .async_session_manager import AbstractSessionManager
 from .date_range import DateRange, TimeUnit
 from .exceptions import ConfigLoadError, NoUpcomingEarningsError
 from .mappings import historical_data_mapping
