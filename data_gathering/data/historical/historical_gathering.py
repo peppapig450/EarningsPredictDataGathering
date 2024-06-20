@@ -209,7 +209,7 @@ class HistoricalDataGathering:
 
     # XXX: refactor this eventually
     async def handle_response_pagination(
-        self, session, data, url: str
+        self, session: aiohttp.ClientSession, data, url: str
     ) -> OrderedDict | None:
         """
         Handles the pagination for API responses.
