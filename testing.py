@@ -83,6 +83,7 @@ async def gather_data_for_batch(symbols, session, data_collector):
         session, symbols=symbols
     )
 
+    # XXX: reset event in call back?
     if initial_data.get("next_page_token", None) is not None:
         # If pagination is needed, await the pagination task
         pagination_event.set()
