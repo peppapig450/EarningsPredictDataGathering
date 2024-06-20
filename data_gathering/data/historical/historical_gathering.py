@@ -19,7 +19,7 @@ class HistoricalDataGathering:
     def __init__(
         self,
         api_keys: APIKeys,
-        to_date: str,
+        to_date: str,  # TODO: get this from Config allow overrides for from_date too
         session_manager: HistoricalDataSessionManager,
         from_date: str = "1983-01-01",
         # cache: BlacklistSymbolCache | None = None,
