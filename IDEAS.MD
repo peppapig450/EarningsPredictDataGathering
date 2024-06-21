@@ -90,3 +90,48 @@ Like this
 Batch {number} processed.
 Paginated {number times}.
 ```
+
+## Passing data from the io queue for gathering data and the cpu queue for processing it.
+Possibly use streaming to pass to the queue as its available.
+
+```python
+from aiohttp import ClientSession
+from multiprocessing import Pool, pool
+
+async def download_chunk(url, chunk_size, queue):
+  async with ClientSession() as session:
+    async with session.get(url) as response:
+      response.raise_for_status()  # Raise exception for non-200 status codes
+      async for chunk in response.content.iter_chunked(chunk_size):
+        queue.put(chunk)  # Add data chunk to the queue
+
+def process_chunk(chunk):
+  # Process the downloaded chunk (e.g., print it)
+  print(f"Received chunk: {chunk[:20]}...")  # Print first 20 bytes
+
+if __name__ == "__main__":
+  # Download URL and chunk size
+  download_url = "https://example.com/large_file.txt"
+  chunk_size = 1024
+
+  # Create a pool of worker processes
+  with Pool(processes=4) as pool:
+    # Initialize a queue
+    queue = pool.Queue()
+
+    # Start downloading asynchronously
+    download_task = pool.apply_async(download_chunk, args=(download_url, chunk_size, queue))
+
+    # Process downloaded chunks
+    while True:
+      try:
+        chunk = queue.get(timeout=1)  # Set a timeout to avoid infinite wait
+        process_chunk(chunk)
+      except pool.TimeoutExpired:
+        # No data received in the specified timeout, potentially finished downloading
+        if download_task.successful():
+          print("Download completed!")
+        else:
+          print("Download failed!")
+        break
+```
