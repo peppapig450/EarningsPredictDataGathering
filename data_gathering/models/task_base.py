@@ -1,12 +1,39 @@
 from typing import Any, Optional
-
-from .task_meta import DataCategory, RunState, TaskMeta, TaskType
+from abc import ABC, abstractmethod
+from enum import Enum, auto, StrEnum
 from data_gathering.utils.safe_uuid import generate_safe_uuid
 
 type Window = tuple[tuple[Any, ...], int]
 
 
-class Task(metaclass=TaskMeta):
+class RunState(Enum):
+    """Enum to represent the state of a task."""
+
+    RUN = auto()  # Task needs to be run still
+    DONE = auto()  # Task has been run
+
+
+class TaskType(Enum):
+    """Enum to represent the type of a task."""
+
+    IO = auto()  # Task is IO bound
+    CPU = auto()  # Task is cpu bound
+
+
+class DataCategory(StrEnum):
+    """Enum mapping Data Categories to the appropiate Task subclass"""
+
+    HISTORICAL = "HistoricalDataTask"  # Historical Price Data
+    FUNDAMENTALS = "FundamentalMetricsTask"  # Fundamental Metrics
+    ANALYST_ESTIMATES = "AnalysistEstimatesTask"  # Analyst Estimates and Recommendation
+    MARKET_SENTIMENT = "MarketSentimentIndicatorsTask"  # Market Sentiment Indicators
+    INDUSTRY_SECTOR = "IndustryAndSectorDataTask"  # Industry and Sector data
+    COMPANY_NEWS = "CompanyNewsAndEventsTask"  # Company News and Events
+    VOLATILITY = "VolatilityTradingVolumeTask"  # Volatility and trading volume
+    EARNINGS_TRANSCRIPTS = "EarningsTranscriptsTask"  # Past earnings call transcripts
+
+
+class Task(ABC):
     """
     A class representing a task with specific attributes and state.
 
@@ -33,7 +60,6 @@ class Task(metaclass=TaskMeta):
         "state",
         "io_result",
         "cpu_result",
-        "data_category_class",
         "symbols",
         "symbols_seen",
     ]
@@ -59,22 +85,15 @@ class Task(metaclass=TaskMeta):
         self.task_type: TaskType = task_type
         self.data_category: DataCategory = data_category
         self.state: RunState = RunState.RUN
-        self.io_result: Optional[Any] = None
-        self.cpu_result: Optional[Any] = None
+        self.io_result: Any | None = None
+        self.cpu_result: Any | None = None
         self.symbols: Window = symbols
         self.symbols_seen: int = symbols_seen
 
-    # subclass each task type with this class
-    """
-    example:
-        async def run_io(self, result_queue):
-            await asyncio.sleep(self.io_duration)
-            self.io_result = f"IO result for {self.symbols} in HistoricalTask"
-            self.state = RunState.DONE
-            result_queue.put(self)
+    @abstractmethod
+    def run_io(self):
+        """Abstract method to ensure that all subclasses of Task have a function for IO bound tasks."""
 
-        def run_cpu(self, cpu_result_ns):
-            self.cpu_result = f"CPU result for {self.symbols} with {self.io_result}"
-            self.state = RunState.DONE
-            cpu_result_ns.chainmap[self.id] = self.cpu_result
-    """
+    @abstractmethod
+    def run_cpu(self):
+        """Abstract method to ensure that all subclasses of Task have a function for CPU bound tasks."""
