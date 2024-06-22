@@ -4,7 +4,8 @@ from multiprocessing import Queue as MPQueue
 from multiprocessing.managers import Namespace
 from multiprocessing.pool import Pool as _Pool
 
-from . import Task, TaskType
+from . import Task, TaskType, DataCategory
+from data_gathering.data.historical.historical_task import HistoricalDataTask
 
 
 class TaskHandler:
@@ -38,3 +39,7 @@ class TaskHandler:
         while not self.cpu_queue.empty():
             task = self.cpu_queue.get()
             task.run_cpu(self.cpu_result_namespace)
+
+    @staticmethod
+    def create_task():
+        pass

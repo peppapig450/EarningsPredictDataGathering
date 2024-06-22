@@ -3,7 +3,7 @@ import asyncio
 import aiohttp
 from .historical_data_session import HistoricalDataSessionManager
 
-from data_gathering.models import DataCategory, Task, TaskMeta, TaskType
+from data_gathering.models import DataCategory, Task, TaskType
 
 from .historical_gathering import HistoricalDataGathering
 from .historical_data_session import HistoricalDataSessionManager
