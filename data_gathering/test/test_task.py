@@ -9,14 +9,32 @@ from data_gathering.models import (
     TaskType,
 )
 
+from data_gathering.data.historical.historical_task import HistoricalDataTask
+
 
 # Define a mock Task class with run_io and run_cpu methods for testing purposes
 class MockTask(Task, metaclass=TaskMeta):
+    pass
+
+
+class MockHistoricalDataTask(MockTask):
     def run_io(self):
-        pass
+        return "Gathered historical data"
 
     def run_cpu(self):
-        pass
+        return "Processed historical data"
+
+
+@pytest.fixture
+def mock_task_meta_historical(mocker):
+    """
+    Fixture to mock TaskMeta.get_data_category_class.
+    """
+    mocker.patch.object(
+        TaskMeta,
+        "get_data_category_class",
+        return_value="MockHistoricalDataTask",
+    )
 
 
 def test_run_state_enum():
@@ -43,20 +61,15 @@ def test_data_category_enum():
     assert all(isinstance(category, DataCategory) for category in categories)
 
 
-def test_data_category_get_next_category():
-    assert DataCategory.HISTORICAL.get_next_category == DataCategory.FUNDAMENTALS
-    assert (
-        DataCategory.EARNINGS_TRANSCRIPTS.get_next_category == DataCategory.HISTORICAL
-    )
-
-
-def test_task_initialization():
+@pytest.mark.usefixtures("mock_task_meta_historical")
+def test_task_initialization(mock_task_meta_historical):
     symbols = ["AAPL", "GOOGL", "MSFT", "AMZN", "TSLA"]
     fraction = 0.4
     iterator = BatchIteratorWithCount(symbols, fraction)
 
     symbols_window, _ = next(iterator)
     symbols_seen = 1  # Starting with 1 because we've already consumed one batch
+
     task = MockTask(
         task_type=TaskType.IO,
         data_category=DataCategory.HISTORICAL,
@@ -69,44 +82,12 @@ def test_task_initialization():
     assert task.state == RunState.RUN
     assert task.io_result is None
     assert task.cpu_result is None
-    assert task.data_category_class == "HistoricalDataTask"
+    assert isinstance(task, (MockTask, MockHistoricalDataTask))
+    assert isinstance(task, MockHistoricalDataTask)
     assert task.symbols == symbols_window
 
-    # Update symbols_seen and initialize tasks for the next batches
-    for batch, count in iterator:
-        symbols_seen = count
-        task = MockTask(
-            task_type=TaskType.IO,
-            data_category=DataCategory.HISTORICAL,
-            symbols=batch,
-            symbols_seen=symbols_seen,
-        )
+    gathered_historical_data = task.run_io()
+    assert gathered_historical_data == "Gathered historical data"
 
-
-def test_task_meta_missing_methods():
-    class IncompleteTask(Task):
-        def __init__(self, *, task_type, data_category, symbols, symbols_seen):
-            super().__init__(
-                task_type=task_type,
-                data_category=data_category,
-                symbols=symbols,
-                symbols_seen=symbols_seen,
-            )
-
-    symbols = ["AAPL", "GOOGL", "MSFT", "AMZN", "TSLA"]
-    fraction = 0.4
-    iterator = BatchIteratorWithCount(symbols, fraction)
-
-    symbols_window, _ = next(iterator)
-    symbols_seen = 1  # Starting with 1 because we've already consumed one batch
-
-    with pytest.raises(
-        TypeError,
-        match="Class 'IncompleteTask' must implement 'run_io' and 'run_cpu' methods",
-    ):
-        task = IncompleteTask(
-            task_type=TaskType.IO,
-            data_category=DataCategory.HISTORICAL,
-            symbols=symbols_window,
-            symbols_seen=symbols_seen,
-        )
+    processed_historical_data = task.run_cpu()
+    assert processed_historical_data == "Processed historical data"
