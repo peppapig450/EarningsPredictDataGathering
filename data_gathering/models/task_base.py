@@ -32,12 +32,22 @@ class DataCategory(StrEnum):
     VOLATILITY = "VolatilityTradingVolumeTask"  # Volatility and trading volume
     EARNINGS_TRANSCRIPTS = "EarningsTranscriptsTask"  # Past earnings call transcripts
 
+    @classmethod
+    def get_task_class_path(cls, self):
+        """Returns the class name associated with a DataCategory member."""
+        # XXX: implement the others as they're written
+        category_to_class_map = {
+            DataCategory.HISTORICAL: "data_gathering.data.historical.historical_task.HistoricalDataTask"
+        }
+        return category_to_class_map.get(self, None)  # Return None if not found
+
 
 class Task(ABC):
     """
     A class representing a task with specific attributes and state.
 
     Attributes:
+    ----------
         task_id (str): The unique identifier of the task, generated using a safe UUID.
         task_type (TaskType): The type of task (IO or CPU bound).
         data_category (DataCategory): The category of data the task handles.
