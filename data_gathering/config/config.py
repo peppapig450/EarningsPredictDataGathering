@@ -6,22 +6,26 @@ from typing import Any
 
 import yaml
 
+from . import APIKeys
 from data_gathering.models import ConfigLoadError, CurrentDate, TimeUnit
 from data_gathering.utils.file_utils import get_file_path_in_project
 
 
 # TODO: look into using pydantic
-# TODO: integrate with the api_keys ??
 class Config:
     _instance = None
     _lock = threading.Lock()
     _config: dict[str, Any] = {}
+    _api_keys: APIKeys = None
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
             with cls._lock:
                 cls._instance = super().__new__(cls)
                 cls._instance._config = cls._load_config()
+                cls._instance._api_keys = (
+                    APIKeys()
+                )  # TODO: figure out how to change init of api keys
                 cls._instance._parse_args()
         return cls._instance
 
@@ -29,6 +33,27 @@ class Config:
     def config(self):
         """Property to easily access the full config dictionary"""
         return self._config
+
+    @property
+    def api_keys(self):
+        """Property to access the API Keys"""
+        return self._api_keys
+
+    @property
+    def upcoming_earnings_dates(self):
+        upcoming_earnings_config: dict[str, int | TimeUnit | None] = self.config[
+            "date_variables"
+        ].get("upcoming_earnings", None)
+
+        # Convert the unit strings into TimeUnit enum values
+        upcoming_earnings_config["init_unit"] = TimeUnit(
+            upcoming_earnings_config["init_unit"]
+        )
+        upcoming_earnings_config["date_window_unit"] = TimeUnit(
+            upcoming_earnings_config["date_window_unit"]
+        )
+
+        return upcoming_earnings_config
 
     @classmethod
     def _load_config(cls) -> dict[str, Any]:
@@ -57,7 +82,7 @@ class Config:
                           context provided if the error location is known.
         """
         # XXX: more robust path handling ?
-        config_data = {}
+        config_data: dict[str, Any] = {}
         # First check for a config file environment variable
         config_file = Path(os.getenv("CONFIG_FILE", "config.yaml"))
 
@@ -85,25 +110,9 @@ class Config:
 
         if config_file.exists():
             return config_file.resolve()
-        raise FileNotFoundError(
-            f"Something went wrong getting the path to {config_file}"
-        )
-
-    @property
-    def upcoming_earnings_dates(self):
-        upcoming_earnings_config: dict[str, int | TimeUnit | None] = self.config[
-            "date_variables"
-        ].get("upcoming_earnings", None)
-
-        # Convert the unit strings into TimeUnit enum values
-        upcoming_earnings_config["init_unit"] = TimeUnit(
-            upcoming_earnings_config["init_unit"]
-        )
-        upcoming_earnings_config["date_window_unit"] = TimeUnit(
-            upcoming_earnings_config["date_window_unit"]
-        )
-
-        return upcoming_earnings_config
+        raise ConfigLoadError(
+            f"Something went wrong getting the path to {config_file}."
+        ) from FileNotFoundError
 
     def _parse_args(self):
         pass

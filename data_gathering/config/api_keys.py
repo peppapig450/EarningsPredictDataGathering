@@ -33,7 +33,7 @@ class APIKeys:
     _keys: APIKeysDict = field(default_factory=dict)
 
     def __init__(
-        self, load_from: str = "config", config_file: Optional[str] = "api_keys.ini"
+        self, load_from: str = "config", config_file: str = "api_keys.ini"
     ) -> None:
         """
         Initializes an APIKeys instance.
@@ -67,7 +67,7 @@ class APIKeys:
 
         if not config_file_path.exists():
             raise FileNotFoundError(
-                "Configuration file '${config_file_name}' not found."
+                f"Configuration file '{config_file_name}' not found."
             )
 
         config = configparser.ConfigParser()
