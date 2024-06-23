@@ -79,3 +79,12 @@ class ConfigLoadError(Exception):
     """
 
     pass
+
+
+# TODO: expand this doc string
+class TaskCreationError(Exception):
+    """
+    Exception raised for errors that occur when creating a subclass of Task for data gathering.
+    """
+
+    pass
