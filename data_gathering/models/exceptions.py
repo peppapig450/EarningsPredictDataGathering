@@ -88,3 +88,6 @@ class TaskCreationError(Exception):
     """
 
     pass
+
+
+# TODO: base custom exceptions for Data Gathering and for Data Processing
