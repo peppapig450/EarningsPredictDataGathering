@@ -63,7 +63,7 @@ class Task(ABC):
         multiple processes. This ensures each task has a unique identifier without the risk of collisions.
     """
 
-    __slots__ = [
+    __slots__ = (
         "task_id",
         "task_type",
         "data_category",
@@ -72,7 +72,7 @@ class Task(ABC):
         "cpu_result",
         "symbols",
         "symbols_seen",
-    ]
+    )
 
     def __init__(
         self,
