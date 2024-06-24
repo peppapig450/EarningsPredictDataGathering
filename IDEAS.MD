@@ -135,3 +135,42 @@ if __name__ == "__main__":
           print("Download failed!")
         break
 ```
+
+## Combine task creator factory with Task Handler
+```python
+class TaskHandler:
+  def __init__(self, factory):
+    self.factory = factory
+    self.io_queue = Queue()  # Queue for IO tasks
+    self.cpu_queue = Queue()  # Queue for CPU tasks
+
+  def create_task(self, task_type, **kwargs):
+    task = self.factory.create_task(task_type, **kwargs)
+    if isinstance(task, IOTask):
+      self.io_queue.put(task)
+    elif isinstance(task, CPUTask):
+      self.cpu_queue.put(task)
+    else:
+      raise ValueError(f"Invalid task type: {task_type}")
+
+  def run_tasks(self, num_threads=1):
+    # Use threads or other mechanisms to execute tasks concurrently
+    # (implementation omitted for brevity)
+    for _ in range(num_threads):
+      thread = Thread(target=self.execute_task)
+      thread.start()
+    # Wait for all threads to finish
+    for thread in threading.enumerate():
+      thread.join()
+
+  def execute_task(self):
+    while True:
+      # Get task from a queue (implementation omitted for brevity)
+      task = get_task_from_queue()
+      if task is None:
+        break  # No more tasks in queue
+      task.run()
+      # Handle task result (implementation omitted for brevity)
+
+  # Additional methods for handling results, errors, etc.
+```

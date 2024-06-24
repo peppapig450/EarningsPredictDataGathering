@@ -7,6 +7,8 @@ from multiprocessing.pool import Pool as _Pool
 from . import Task, TaskType, DataCategory
 from data_gathering.data.historical.historical_task import HistoricalDataTask
 
+# TODO: check ideas.md
+
 
 class TaskHandler:
     def __init__(
