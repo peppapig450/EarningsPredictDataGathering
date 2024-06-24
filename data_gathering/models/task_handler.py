@@ -39,7 +39,3 @@ class TaskHandler:
         while not self.cpu_queue.empty():
             task = self.cpu_queue.get()
             task.run_cpu(self.cpu_result_namespace)
-
-    @staticmethod
-    def create_task():
-        pass
