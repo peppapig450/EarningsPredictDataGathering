@@ -7,9 +7,7 @@ from typing import Any
 
 import yaml
 
-from data_gathering.models.yaml_objects import CurrentDate
-from data_gathering.models.date_range import TimeUnit
-from data_gathering.models.exceptions import ConfigLoadError
+from data_gathering.models import ConfigLoadError, CurrentDate, TimeUnit
 from data_gathering.utils.file_utils import get_file_path_in_project
 
 from .api_keys import APIKeys
