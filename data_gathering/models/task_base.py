@@ -101,7 +101,7 @@ class Task(ABC):
         self.symbols_seen: int = symbols_seen
 
     @abstractmethod
-    def run_io(self):
+    def run_io(self, cpu_queue):
         """Abstract method to ensure that all subclasses of Task have a function for IO bound tasks."""
 
     @abstractmethod

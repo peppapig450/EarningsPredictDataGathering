@@ -33,7 +33,7 @@ class HistoricalDataTask(Task):
         self.api_keys = api_keys
         self.session_manager = session_manager
 
-    def run_io(self):
+    def run_io(self, cpu_queue):
         pass
 
     def run_cpu(self):
