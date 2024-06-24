@@ -1,6 +1,7 @@
 import argparse
 import os
 import threading
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -54,6 +55,14 @@ class Config:
         )
 
         return upcoming_earnings_config
+
+    @property
+    def historical_gathering_dates(self) -> dict[str, str]:
+        """Propery to return the to_date of yesterday for HistoricalDataGathering"""
+        return {
+            "from_date": "1983-01-01",
+            "to_date": (date.today() - timedelta(days=1)).strftime('%Y-%m-%d')
+        }
 
     @classmethod
     def _load_config(cls) -> dict[str, Any]:
@@ -116,3 +125,5 @@ class Config:
 
     def _parse_args(self):
         pass
+
+    def _
