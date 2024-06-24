@@ -1,7 +1,6 @@
 import importlib
 from typing import Any
 
-from data_gathering.config import APIKeys, Config
 from data_gathering.data.historical.historical_task import HistoricalDataTask
 from data_gathering.models import TaskCreationError
 
@@ -11,10 +10,9 @@ type Window = tuple[tuple[Any, ...], int]
 
 
 class TaskCreator:
-    # TODO: one function to create the class based on the data category (factory class)
-    def __init__(self, config: Config) -> None:
+    def __init__(self, config) -> None:
         self.config = config
-        self.api_keys: APIKeys = config.api_keys
+        self.api_keys = config.api_keys
 
     def create_task(
         self,
@@ -27,7 +25,11 @@ class TaskCreator:
             case DataCategory.HISTORICAL:
                 _class = self._get_class_from_category(data_category)
                 return _class(
-                    task_type, data_category, symbols, symbols_seen, self.api_keys
+                    task_type=task_type,
+                    data_category=data_category,
+                    symbols=symbols,
+                    symbols_seen=symbols_seen,
+                    api_keys=self.api_keys,
                 )
             case _:
                 raise TaskCreationError("Something went wrong creating the class")
