@@ -3,7 +3,6 @@ from typing import Any
 
 import aiohttp
 
-from data_gathering.config import Config
 from data_gathering.models import DataCategory, Task, TaskType
 
 from .historical_data_session import HistoricalDataSessionManager
