@@ -15,12 +15,24 @@ from data_gathering.models import (
     TaskType,
 )
 from data_gathering.config import Config, APIKeys
+from data_gathering.models import TaskType
+
+
+@pytest.fixture
+def task_type():
+    return TaskType.IO
 
 
 @pytest.fixture
 def config():
     api_keys = MagicMock(spec=APIKeys)
-    return Config(api_keys=api_keys)
+    config = MagicMock(spec=Config)
+    config.api_keys = api_keys
+    config.historical_gathering_dates = {
+        "from_date": "2023-01-01",
+        "to_date": "2023-12-31",
+    }
+    return config
 
 
 @pytest.fixture
@@ -28,26 +40,49 @@ def task_creator(config):
     return TaskCreator(config)
 
 
-def test_create_historical_task(task_creator, task_type, symbols):
-    data_category = DataCategory.HISTORICAL
-    symbols_seen = 5
+@pytest.fixture
+def symbols():
+    return ((1, 2, 3), 4)
 
+
+@pytest.fixture
+def historical_data_task(task_type, symbols, config):
+    session_manager = MagicMock(spec=HistoricalDataSessionManager)
+    dates = config.historical_gathering_dates
+    return HistoricalDataTask(
+        task_type=task_type,
+        data_category=DataCategory.HISTORICAL,
+        symbols=symbols,
+        symbols_seen=5,
+        api_keys=config.api_keys,
+        session_manager=session_manager,
+        dates=dates,
+    )
+
+
+def test_create_historical_task(task_creator, task_type, symbols, historical_data_task):
     with patch.object(HistoricalDataSessionManager, "__init__", return_value=None):
         with patch(
             "task_creator.importlib.import_module",
             return_value=MagicMock(Historical=HistoricalDataTask),
         ):
             task = task_creator.create_task(
-                task_type, data_category, symbols, symbols_seen
+                task_type, DataCategory.HISTORICAL, symbols, 5
             )
             assert isinstance(task, HistoricalDataTask)
             assert task.task_type == task_type
-            assert task.data_category == data_category
+            assert task.data_category == DataCategory.HISTORICAL
             assert task.symbols == symbols
-            assert task.symbols_seen == symbols_seen
-            assert task.api_keys == config.api_keys
-            assert task._from_date == config.historical_gathering_dates["from_date"]
-            assert task._to_date == config.historical_gathering_dates["to_date"]
+            assert task.symbols_seen == 5
+            assert task.api_keys == task_creator.api_keys
+            assert (
+                task._from_date
+                == task_creator.config.historical_gathering_dates["from_date"]
+            )
+            assert (
+                task._to_date
+                == task_creator.config.historical_gathering_dates["to_date"]
+            )
 
 
 def test_create_task_invalid_category(task_creator):

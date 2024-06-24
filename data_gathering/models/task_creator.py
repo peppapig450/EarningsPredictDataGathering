@@ -28,7 +28,7 @@ class TaskCreator:
             case DataCategory.HISTORICAL:
                 _class = self._get_class_from_category(data_category)
                 session_manager = HistoricalDataSessionManager(self.api_keys)
-                dates = config.historical_gathering_dates
+                dates = self.config.historical_gathering_dates
                 return _class(
                     task_type=task_type,
                     data_category=data_category,
