@@ -7,9 +7,12 @@ from typing import Any
 
 import yaml
 
-from . import APIKeys
-from data_gathering.models import ConfigLoadError, CurrentDate, TimeUnit
+from data_gathering.models.yaml_objects import CurrentDate
+from data_gathering.models.date_range import TimeUnit
+from data_gathering.models.exceptions import ConfigLoadError
 from data_gathering.utils.file_utils import get_file_path_in_project
+
+from .api_keys import APIKeys
 
 
 # TODO: look into using pydantic
@@ -61,7 +64,7 @@ class Config:
         """Propery to return the to_date of yesterday for HistoricalDataGathering"""
         return {
             "from_date": "1983-01-01",
-            "to_date": (date.today() - timedelta(days=1)).strftime('%Y-%m-%d')
+            "to_date": (date.today() - timedelta(days=1)).strftime("%Y-%m-%d"),
         }
 
     @classmethod
@@ -125,5 +128,3 @@ class Config:
 
     def _parse_args(self):
         pass
-
-    def _

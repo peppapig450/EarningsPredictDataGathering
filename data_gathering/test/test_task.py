@@ -4,6 +4,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from data_gathering.data.historical.historical_task import HistoricalDataTask
+from data_gathering.data.historical.historical_data_session import (
+    HistoricalDataSessionManager,
+)
 from data_gathering.models import (
     DataCategory,
     RunState,
@@ -25,22 +28,26 @@ def task_creator(config):
     return TaskCreator(config)
 
 
-def test_create_task_historical(task_creator):
-    task_type = MagicMock(spec=TaskType)
+def test_create_historical_task(task_creator, task_type, symbols):
     data_category = DataCategory.HISTORICAL
-    symbols = ((1, 2, 3), 4)
     symbols_seen = 5
 
-    with patch.object(
-        TaskCreator, "_get_class_from_category", return_value=HistoricalDataTask
-    ):
-        task = task_creator.create_task(task_type, data_category, symbols, symbols_seen)
-        assert isinstance(task, HistoricalDataTask)
-        assert task.task_type == task_type
-        assert task.data_category == data_category
-        assert task.symbols == symbols
-        assert task.symbols_seen == symbols_seen
-        assert task.api_keys == task_creator.api_keys
+    with patch.object(HistoricalDataSessionManager, "__init__", return_value=None):
+        with patch(
+            "task_creator.importlib.import_module",
+            return_value=MagicMock(Historical=HistoricalDataTask),
+        ):
+            task = task_creator.create_task(
+                task_type, data_category, symbols, symbols_seen
+            )
+            assert isinstance(task, HistoricalDataTask)
+            assert task.task_type == task_type
+            assert task.data_category == data_category
+            assert task.symbols == symbols
+            assert task.symbols_seen == symbols_seen
+            assert task.api_keys == config.api_keys
+            assert task._from_date == config.historical_gathering_dates["from_date"]
+            assert task._to_date == config.historical_gathering_dates["to_date"]
 
 
 def test_create_task_invalid_category(task_creator):

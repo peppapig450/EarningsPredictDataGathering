@@ -3,7 +3,7 @@ from typing import Any
 
 import aiohttp
 
-from data_gathering.config import APIKeys, Config
+from data_gathering.config import Config
 from data_gathering.models import DataCategory, Task, TaskType
 
 from .historical_data_session import HistoricalDataSessionManager
@@ -23,7 +23,7 @@ class HistoricalDataTask(Task):
         data_category: DataCategory = DataCategory.HISTORICAL,
         symbols: Symbols,
         symbols_seen: int,
-        api_keys: APIKeys,
+        api_keys,
         session_manager: HistoricalDataSessionManager,
         dates: dict[str, str],
     ) -> None:
