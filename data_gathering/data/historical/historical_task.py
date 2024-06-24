@@ -10,6 +10,8 @@ from .historical_data_session import HistoricalDataSessionManager
 from .historical_gathering import HistoricalDataGathering
 from .historical_processing import HistoricalDataProcessing
 
+type Symbols = tuple[tuple[Any, ...], int]
+
 
 class HistoricalDataTask(Task):
     def __init__(
@@ -17,9 +19,10 @@ class HistoricalDataTask(Task):
         *,
         task_type: TaskType,
         data_category: DataCategory = DataCategory.HISTORICAL,
-        symbols: tuple[tuple[Any, ...], int],
+        symbols: Symbols,
         symbols_seen: int,
-        api_keys: APIKeys
+        api_keys: APIKeys,
+        session_manager: HistoricalDataSessionManager,
     ) -> None:
         super().__init__(
             task_type=task_type,
@@ -28,6 +31,7 @@ class HistoricalDataTask(Task):
             symbols_seen=symbols_seen,
         )
         self.api_keys = api_keys
+        self.session_manager = session_manager
 
     def run_io(self):
         pass

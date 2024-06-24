@@ -1,7 +1,9 @@
 import importlib
 from typing import Any
 
-from data_gathering.data.historical.historical_task import HistoricalDataTask
+from data_gathering.data.historical.historical_data_session import (
+    HistoricalDataSessionManager,
+)
 from data_gathering.models import TaskCreationError
 
 from . import DataCategory, TaskType
@@ -21,15 +23,18 @@ class TaskCreator:
         symbols: Window,
         symbols_seen: int,
     ):
+        # TODO: look into using a dataclass for the parameters
         match data_category:
             case DataCategory.HISTORICAL:
                 _class = self._get_class_from_category(data_category)
+                session_manager = HistoricalDataSessionManager(self.api_keys)
                 return _class(
                     task_type=task_type,
                     data_category=data_category,
                     symbols=symbols,
                     symbols_seen=symbols_seen,
                     api_keys=self.api_keys,
+                    session_manager=session_manager,
                 )
             case _:
                 raise TaskCreationError("Something went wrong creating the class")
