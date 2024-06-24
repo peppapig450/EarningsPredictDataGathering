@@ -55,7 +55,6 @@ async def main():
             current_category = data_categories.popleft()
 
             # Start the initial tasks for each symbol in the current category
-            # sliding window with itertools? or use look ahead for the io queue
             tasks = [
                 creator.create_task(
                     task_type=TaskType.IO,
@@ -69,8 +68,7 @@ async def main():
             for task in tasks:
                 handler.add_task(task)
             # other idea:
-            #    Create initial tasks for each symbol in the current category
-            #    tasks = [Task(task_id=symbol, task_type=TaskType.IO, data_category=current_category, symbols=[symbol]) for symbol in symbols]
+
             #
             #    Add tasks to the IO queue
             #    for task in tasks:
