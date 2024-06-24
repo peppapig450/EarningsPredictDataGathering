@@ -5,7 +5,7 @@ from data_gathering.config import APIKeys, Config
 from data_gathering.data.historical.historical_task import HistoricalDataTask
 from data_gathering.models import TaskCreationError
 
-from . import DataCategory, Task, TaskType
+from . import DataCategory, TaskType
 
 type Window = tuple[tuple[Any, ...], int]
 

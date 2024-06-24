@@ -11,6 +11,7 @@ from data_gathering.models import (
     Task,
     TaskHandler,
     TaskType,
+    TaskCreator,
 )
 from data_gathering.utils.cache.cache_registry import CacheRegistry
 
@@ -26,6 +27,7 @@ async def main():
         api_keys = APIKeys(load_from="config")
         cache = CacheRegistry()
         config = Config()
+        creator = TaskCreator(config)
 
         upcoming = UpcomingEarnings(api_keys, cache)
 
@@ -55,7 +57,7 @@ async def main():
             # Start the initial tasks for each symbol in the current category
             # sliding window with itertools? or use look ahead for the io queue
             tasks = [
-                Task(
+                creator.create_task(
                     task_type=TaskType.IO,
                     data_category=current_category,
                     symbols=window,
