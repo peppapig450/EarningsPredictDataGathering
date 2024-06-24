@@ -3,7 +3,7 @@ from collections import OrderedDict
 from datetime import date
 import re
 from typing import Any, Optional
-from urllib.parse import parse_qsl, quote, urlencode, urlparse, urlunparse
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 import aiohttp
 from .historical_data_session import HistoricalDataSessionManager
@@ -19,9 +19,9 @@ class HistoricalDataGathering:
     def __init__(
         self,
         api_keys: APIKeys,
-        to_date: str,  # TODO: get this from Config allow overrides for from_date too
         session_manager: HistoricalDataSessionManager,
-        from_date: str = "1983-01-01",
+        from_date: str,
+        to_date: str,
         # cache: BlacklistSymbolCache | None = None,
     ) -> None:
         """
@@ -40,10 +40,8 @@ class HistoricalDataGathering:
 
         self.from_date, self.to_date = self._validate_and_init_dates(from_date, to_date)
         # self.cache: BlacklistSymbolCache = cache
-        self.session_manager: HistoricalDataSessionManager = (
-            session_manager  # created by task handler
-        )
-        self.logger: logging.Logger = logging.getLogger(__name__)
+        self.session_manager: HistoricalDataSessionManager = session_manager
+        self.logger = logging.getLogger(__name__)
 
     def _validate_and_init_dates(self, from_date: str, to_date: str) -> tuple[str, str]:
         """

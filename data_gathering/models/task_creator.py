@@ -28,6 +28,7 @@ class TaskCreator:
             case DataCategory.HISTORICAL:
                 _class = self._get_class_from_category(data_category)
                 session_manager = HistoricalDataSessionManager(self.api_keys)
+                dates = config.historical_gathering_dates
                 return _class(
                     task_type=task_type,
                     data_category=data_category,
@@ -35,6 +36,7 @@ class TaskCreator:
                     symbols_seen=symbols_seen,
                     api_keys=self.api_keys,
                     session_manager=session_manager,
+                    dates=dates,
                 )
             case _:
                 raise TaskCreationError("Something went wrong creating the class")
