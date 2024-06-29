@@ -19,7 +19,6 @@ class HistoricalDataGathering:
     def __init__(
         self,
         api_keys: APIKeys,
-        session_manager: HistoricalDataSessionManager,
         from_date: str,
         to_date: str,
         # cache: BlacklistSymbolCache | None = None,
@@ -31,7 +30,6 @@ class HistoricalDataGathering:
             api_keys (APIKeys): API keys for authentication.
             to_date (str): The end date for data collection in YYYY-MM-DD format.
             cache (BlacklistSymbolCache): Cache object for storing blacklisted symbols.
-            session_manager (HistoricalDataSessionManager): Session manager for handling HTTP sessions.
             from_date (str, optional): The start date for data collection in YYYY-MM-DD format. Defaults to "1983-01-01".
         """
         self._apca_key_id, self._apca_api_secret_key = api_keys.get_key(
@@ -40,7 +38,6 @@ class HistoricalDataGathering:
 
         self.from_date, self.to_date = self._validate_and_init_dates(from_date, to_date)
         # self.cache: BlacklistSymbolCache = cache
-        self.session_manager: HistoricalDataSessionManager = session_manager
         self.logger = logging.getLogger(__name__)
 
     def _validate_and_init_dates(self, from_date: str, to_date: str) -> tuple[str, str]:
