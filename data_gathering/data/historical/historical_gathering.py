@@ -166,7 +166,7 @@ class HistoricalDataGathering:
     async def make_api_request(
         self,
         session: aiohttp.ClientSession,
-        symbols: Optional[list[str]] = None,
+        symbols: window,
         url: Optional[str] = None,
     ) -> tuple[dict[str, Any], str]:
         """
