@@ -3,7 +3,8 @@ from abc import ABC, abstractmethod
 from enum import Enum, auto, StrEnum
 from data_gathering.utils.safe_uuid import generate_safe_uuid
 
-type Window = tuple[tuple[Any, ...], int]
+# TODO: not sure this is correct look into it
+type Window = tuple[Any, ...]
 
 
 class RunState(Enum):
