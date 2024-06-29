@@ -69,7 +69,7 @@ class HistoricalDataGathering:
 
         return from_date, to_date
 
-    def _build_alpaca_request_url(self, symbols: list[str]) -> str:
+    def _build_alpaca_request_url(self, symbols: window) -> str:
         """
         Constructs a request URL for the Alpaca API with the provided stock symbols and
         predefined query parameters.
