@@ -23,7 +23,6 @@ class TaskCreator:
         symbols: Window,
         symbols_seen: int,
     ):
-        # TODO: look into using a dataclass for the parameters
         match data_category:
             case DataCategory.HISTORICAL:
                 _class = self._get_class_from_category(data_category)
