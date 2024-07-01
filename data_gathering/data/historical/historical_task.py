@@ -9,11 +9,11 @@ from .historical_data_session import HistoricalDataSessionManager
 from .historical_gathering import HistoricalDataGathering
 from .historical_processing import HistoricalDataProcessing
 
-type Symbols = tuple[tuple[Any, ...], int]
+type Symbols = tuple[Any, ...]
 
 
 class HistoricalDataTask(Task):
-    __slots__ = ("_api_keys", "_session_manager", "_from_date", "_to_date")
+    __slots__ = ("_api_keys", "_session_manager", "_from_date", "_to_date", "worker")
 
     def __init__(
         self,
@@ -37,17 +37,13 @@ class HistoricalDataTask(Task):
         self._from_date = dates["from_date"]
         self._to_date = dates["to_date"]
 
-    def _get_gatherer(self):
-        if not hasattr(self, "_gatherer"):
-            self._gatherer = HistoricalDataGathering(
-                api_keys=self._api_keys,
-                session_manager=self._session_manager,
-                from_date=self._from_date,
-                to_date=self._to_date,
+        if task_type == TaskType.IO:
+            self.worker = HistoricalDataGathering(
+                self._api_keys, self._from_date, self._to_date
             )
-        return self._gatherer
-
-    gatherer = property(_get_gatherer)
+        elif task_type == TaskType.CPU:
+            # TODO: data processor instantiation
+            pass
 
     def run_io(self, cpu_queue):
         pass
@@ -55,5 +51,10 @@ class HistoricalDataTask(Task):
     def run_cpu(self):
         pass
 
-    def _gather_data_for_symbols(self, symbols):
-        pass
+    async def _gather_data_for_symbols(self, symbols: Symbols):
+        pagination_event = asyncio.Event()
+
+        async with self._session_manager.manage_session() as session:
+            initial_data, complete_url = await self.worker.make_api_request(
+                session, symbols
+            )
