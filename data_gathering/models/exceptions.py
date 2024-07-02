@@ -64,23 +64,6 @@ class NoUpcomingEarningsError(Exception):
         raise RuntimeError from self
 
 
-class ConfigLoadError(Exception):
-    """
-    Exception raised for errors occurring during the loading of configuration files.
-
-    This exception is specifically raised in response to:
-    - FileNotFoundError: When the configuration file cannot be found.
-    - yaml.YAMLError: When there is an error parsing the YAML configuration file.
-
-    Attributes:
-    -----------
-    message : str
-        The error message describing the cause of the exception.
-    """
-
-    pass
-
-
 # TODO: expand this doc string
 class TaskCreationError(Exception):
     """
