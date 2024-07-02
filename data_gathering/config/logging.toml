@@ -1,0 +1,38 @@
+# Logging config
+# XXX: maybe add rotating file handler
+
+version = 1   # Integer value for version
+disable_existing_loggers = false
+
+[formatters.detailed]
+format = "{levelname} {asctime} {name}: - {module} {process:d} {thread:d} - {message}"
+datefmt = "%m:%d %H:%M:%s"
+style = "{"
+
+[formatters.simple]
+# Format string for simple formatter
+format = "{levelname} {name}: - {message}"
+datefmt = "%m:%d %H:%M:%s"
+style = "{"
+
+[handlers.console]
+class = "logging.StreamHandler"
+level = "DEBUG"
+formatter = "simple"
+
+[handlers.file]
+class = "logging.FileHandler"
+filename = "logging/data-gathering.log"
+mode = "w"
+formatter = "detailed"
+
+[handlers.errors]
+class = "logging.FileHandler"
+filename = "logging/data-gathering-errors.log"
+mode = "w"
+level = "ERROR"
+formatter = "detailed"
+
+[root]
+level = "DEBUG"
+handlers = [ "console", "file", "errors" ]
