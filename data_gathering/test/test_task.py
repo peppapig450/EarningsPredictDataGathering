@@ -1,22 +1,14 @@
-import importlib
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from data_gathering.config import APIKeys, Config
+from data_gathering.config import Config
 from data_gathering.data.historical.historical_data_session import (
     HistoricalDataSessionManager,
 )
 from data_gathering.data.historical.historical_task import HistoricalDataTask
 from data_gathering.exceptions import TaskCreationError
-from data_gathering.tasks import (
-    DataCategory,
-    RunState,
-    Task,
-    TaskCreator,
-    TaskHandler,
-    TaskType,
-)
+from data_gathering.tasks import DataCategory, RunState, TaskCreator, TaskType
 
 
 @pytest.fixture
@@ -26,9 +18,7 @@ def task_type():
 
 @pytest.fixture
 def config():
-    api_keys = MagicMock(spec=APIKeys)
     config = MagicMock(spec=Config)
-    config.api_keys = api_keys
     config.historical_gathering_dates = {
         "from_date": "2023-01-01",
         "to_date": "2023-12-31",
@@ -50,6 +40,9 @@ def symbols():
 def historical_data_task(task_type, symbols, config):
     session_manager = MagicMock(spec=HistoricalDataSessionManager)
     dates = config.historical_gathering_dates
+    # Mock the get_key method to return a valid tuple for ALPACA
+    config.api_keys.get_key = MagicMock(return_value=("mock_key_id", "mock_secret_key"))
+
     return HistoricalDataTask(
         task_type=task_type,
         data_category=DataCategory.HISTORICAL,
@@ -63,27 +56,21 @@ def historical_data_task(task_type, symbols, config):
 
 def test_create_historical_task(task_creator, task_type, symbols, historical_data_task):
     with patch.object(HistoricalDataSessionManager, "__init__", return_value=None):
-        with patch(
-            "task_creator.importlib.import_module",
-            return_value=MagicMock(Historical=HistoricalDataTask),
-        ):
-            task = task_creator.create_task(
-                task_type, DataCategory.HISTORICAL, symbols, 5
-            )
-            assert isinstance(task, HistoricalDataTask)
-            assert task.task_type == task_type
-            assert task.data_category == DataCategory.HISTORICAL
-            assert task.symbols == symbols
-            assert task.symbols_seen == 5
-            assert task.api_keys == task_creator.api_keys
-            assert (
-                task._from_date
-                == task_creator.config.historical_gathering_dates["from_date"]
-            )
-            assert (
-                task._to_date
-                == task_creator.config.historical_gathering_dates["to_date"]
-            )
+
+        task = task_creator.create_task(task_type, DataCategory.HISTORICAL, symbols, 5)
+        assert isinstance(task, HistoricalDataTask)
+        assert task.task_type == task_type
+        assert task.data_category == DataCategory.HISTORICAL
+        assert task.symbols == symbols
+        assert task.symbols_seen == 5
+        assert task._api_keys == task_creator.api_keys
+        assert (
+            task._from_date
+            == task_creator.config.historical_gathering_dates["from_date"]
+        )
+        assert (
+            task._to_date == task_creator.config.historical_gathering_dates["to_date"]
+        )
 
 
 def test_create_task_invalid_category(task_creator):
@@ -101,21 +88,15 @@ def test_create_task_invalid_category(task_creator):
 def test_get_class_from_category(task_creator):
     data_category = DataCategory.HISTORICAL
 
-    with patch.object(
-        task_creator,
-        "_get_module_path_from_category",
-        return_value="data_gathering.data.historical.historical_task",
-    ):
-        with patch(
-            "importlib.import_module",
-            return_value=MagicMock(Historical=HistoricalDataTask),
-        ):
-            _class = task_creator._get_class_from_category(data_category)
-            assert _class.name == "mock.HistoricalDataTask"
+    _class = task_creator._get_class_from_category(data_category)
+    expected_class_name = "HistoricalDataTask"
+
+    assert _class.__name__ == expected_class_name
+    assert _class.__module__ == "data_gathering.data.historical.historical_task"
 
 
 def test_get_module_path_from_category(task_creator):
-    data_category = MagicMock()
+    data_category = MagicMock(spec=DataCategory.HISTORICAL)
     data_category.get_task_class_path = MagicMock(
         return_value="data_gathering.data.historical.historical_task"
     )
