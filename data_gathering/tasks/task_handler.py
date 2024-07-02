@@ -4,7 +4,6 @@ from multiprocessing.pool import Pool as _Pool
 
 from .task_enums import TaskType
 from .task_base import Task
-from data_gathering.data.historical.historical_task import HistoricalDataTask
 
 # TODO: check ideas.md
 
