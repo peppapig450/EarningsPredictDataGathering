@@ -6,7 +6,7 @@ from data_gathering.data.historical.historical_data_session import (
 )
 from data_gathering.exceptions import TaskCreationError
 
-from . import DataCategory, TaskType
+from .task_enums import DataCategory, TaskType
 
 type Window = tuple[tuple[Any, ...], int]
 
