@@ -1,1 +1,2 @@
-from .config import Config, APIKeys
+from .config import Config
+from .api_keys import ApiKey
