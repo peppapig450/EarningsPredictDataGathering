@@ -4,7 +4,7 @@ from typing import Any
 from data_gathering.data.historical.historical_data_session import (
     HistoricalDataSessionManager,
 )
-from data_gathering.models import TaskCreationError
+from data_gathering.exceptions import TaskCreationError
 
 from . import DataCategory, TaskType
 
