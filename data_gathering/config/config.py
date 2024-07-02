@@ -3,11 +3,12 @@ import os
 import threading
 from datetime import date, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 
 import yaml
 
-from data_gathering.models import ConfigLoadError, CurrentDate, TimeUnit
+from data_gathering.exceptions import ConfigLoadError
+from data_gathering.models import CurrentDate, TimeUnit
 from data_gathering.utils.file_utils import get_file_path_in_project
 
 from .api_keys import APIKeys
@@ -15,10 +16,10 @@ from .api_keys import APIKeys
 
 # TODO: look into using pydantic
 class Config:
-    _instance = None
+    _instance: Self | None = None
     _lock = threading.Lock()
     _config: dict[str, Any] = {}
-    _api_keys: APIKeys = None
+    _api_keys: APIKeys | None = None
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
