@@ -2,7 +2,7 @@ import configparser
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Sequence
+from typing import Sequence
 from enum import Enum, auto
 
 
