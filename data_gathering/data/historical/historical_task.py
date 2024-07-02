@@ -3,11 +3,13 @@ from typing import Any
 
 import aiohttp
 
-from data_gathering.tasks import DataCategory, Task, TaskType
+from data_gathering.tasks.task_enums import DataCategory, TaskType
+from data_gathering.tasks.task_base import Task
 
 from .historical_data_session import HistoricalDataSessionManager
 from .historical_gathering import HistoricalDataGathering
 from .historical_processing import HistoricalDataProcessing
+from data_gathering.config.api_keys import APIKeys
 
 type Symbols = tuple[Any, ...]
 
@@ -22,7 +24,7 @@ class HistoricalDataTask(Task):
         data_category: DataCategory = DataCategory.HISTORICAL,
         symbols: Symbols,
         symbols_seen: int,
-        api_keys,
+        api_keys: APIKeys,
         session_manager: HistoricalDataSessionManager,
         dates: dict[str, str],
     ) -> None:
@@ -32,7 +34,7 @@ class HistoricalDataTask(Task):
             symbols=symbols,
             symbols_seen=symbols_seen,
         )
-        self._api_keys = api_keys
+        self._api_keys: APIKeys = api_keys
         self._session_manager = session_manager
         self._from_date = dates["from_date"]
         self._to_date = dates["to_date"]
