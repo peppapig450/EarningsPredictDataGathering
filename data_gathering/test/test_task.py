@@ -3,19 +3,20 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from data_gathering.data.historical.historical_task import HistoricalDataTask
+from data_gathering.config import APIKeys, Config
 from data_gathering.data.historical.historical_data_session import (
     HistoricalDataSessionManager,
 )
-from data_gathering.models import (
+from data_gathering.data.historical.historical_task import HistoricalDataTask
+from data_gathering.exceptions import TaskCreationError
+from data_gathering.tasks import (
     DataCategory,
     RunState,
-    TaskCreationError,
+    Task,
     TaskCreator,
+    TaskHandler,
     TaskType,
 )
-from data_gathering.config import Config, APIKeys
-from data_gathering.models import TaskType
 
 
 @pytest.fixture
