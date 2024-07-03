@@ -1,15 +1,16 @@
 import asyncio
+from multiprocessing import Queue
 from typing import Any
 
 import aiohttp
 
-from data_gathering.tasks.task_enums import DataCategory, TaskType
+from data_gathering.config.api_keys import APIKeys
 from data_gathering.tasks.task_base import Task
+from data_gathering.tasks.task_enums import DataCategory, TaskType
 
 from .historical_data_session import HistoricalDataSessionManager
 from .historical_gathering import HistoricalDataGathering
 from .historical_processing import HistoricalDataProcessing
-from data_gathering.config.api_keys import APIKeys
 
 type Symbols = tuple[Any, ...]
 
@@ -47,8 +48,9 @@ class HistoricalDataTask(Task):
             # TODO: data processor instantiation
             pass
 
-    def run_io(self, cpu_queue):
-        pass
+    def run_io(self, cpu_queue: Queue):
+        gathered_data = self._gather_data_for_symbols(self.symbols)
+        cpu_queue.put(gathered_data)
 
     def run_cpu(self):
         pass
@@ -60,3 +62,14 @@ class HistoricalDataTask(Task):
             initial_data, complete_url = await self.worker.make_api_request(
                 session, symbols
             )
+
+            if initial_data.get("next_page_token", None) is not None:
+                # If pagination is needed, await the pagination task
+                pagination_event.set()
+
+            # Make the pagination requests
+            complete_data = await self.worker.handle_response_pagination(
+                session, initial_data, complete_url
+            )
+
+            return complete_data
