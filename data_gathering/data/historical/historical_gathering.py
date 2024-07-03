@@ -9,6 +9,7 @@ import aiohttp
 from .historical_data_session import HistoricalDataSessionManager
 
 from data_gathering.config.api_keys import APIKeys, APIService
+from data_gathering.exceptions import HistoricalDataGatheringError
 
 type window = tuple[Any, ...]
 
@@ -166,7 +167,7 @@ class HistoricalDataGathering:
     async def make_api_request(
         self,
         session: aiohttp.ClientSession,
-        symbols: window,
+        symbols: window | None = None,
         url: Optional[str] = None,
     ) -> tuple[dict[str, Any], str]:
         """
@@ -200,7 +201,10 @@ class HistoricalDataGathering:
                 f"Error: {err} - occured while retrieving data from {complete_url}",
                 exc_info=True,
             )
-            return None  # TODO: raise custom error here instead
+            raise HistoricalDataGatheringError(
+                f"Error occured while retrieving data from {complete_url}",
+                include_traceback=True,
+            ) from err
 
     # XXX: refactor this eventually
     async def handle_response_pagination(
