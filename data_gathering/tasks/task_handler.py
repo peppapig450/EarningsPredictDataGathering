@@ -29,11 +29,14 @@ class TaskHandler:
         elif task.task_type == TaskType.CPU:
             self.cpu_queue.put(task)
 
-    # TODO: look into using imap
+    # TODO: figure out how to use the asyncio functionality with the multiprocessing
     def io_worker(self):
         while not self.io_queue.empty():
             task = self.io_queue.get()
             self.io_pool.apply_async(task.run_io, args=(self.cpu_queue,))
+
+    def _run_io_task(self, task: Task):
+        return task.run_io()
 
     def cpu_worker(self):
         while not self.cpu_queue.empty():

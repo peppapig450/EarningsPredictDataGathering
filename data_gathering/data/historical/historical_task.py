@@ -48,9 +48,9 @@ class HistoricalDataTask(Task):
             # TODO: data processor instantiation
             pass
 
-    def run_io(self, cpu_queue: Queue):
-        gathered_data = self._gather_data_for_symbols(self.symbols)
-        cpu_queue.put(gathered_data)
+    async def run_io(self):
+        gathered_data = await self._gather_data_for_symbols(self.symbols)
+        return gathered_data
 
     def run_cpu(self):
         pass
