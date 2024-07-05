@@ -1,22 +1,16 @@
-from data_gathering.models.task_base import Task
+import asyncio
+import multiprocessing
+from concurrent.futures import ProcessPoolExecutor
 
-import importlib
-
-module_path = "data_gathering.data.historical.historical_task.HistoricalDataTask"
-
-
-def get_class(module_path):
-    parts = module_path.strip(".").split(".")
-
-    module_name = parts[-1]
-    package_path = ".".join(parts[:-1])
-
-    try:
-        module = importlib.import_module(package_path)
-        return getattr(module, module_name)
-    except ModuleNotFoundError as e:
-        raise ImportError(f"Module not found: {package_path}") from e
+    
+async def async_function(x, result_queue):
+    await asyncio.sleep(1)
+    data = x * x
+    result_queue.put()
 
 
-_class = get_class(module_path)
-print(dir(_class))
+
+if __name__ == "__main__":
+    with multiprocessing.Manager() as manager:
+        with multiprocessing.Pool(processes=4) as pool:
+            
