@@ -33,10 +33,8 @@ class TaskHandler:
     def io_worker(self):
         while not self.io_queue.empty():
             task = self.io_queue.get()
-            self.io_pool.apply_async(task.run_io, args=(self.cpu_queue,))
-
-    def _run_io_task(self, task: Task):
-        return task.run_io()
+            result = self.io_pool.apply(task.run_io)
+            self.cpu_queue.put(result)
 
     def cpu_worker(self):
         while not self.cpu_queue.empty():
