@@ -166,3 +166,7 @@ efficiency.py
 *.prof
 *.pkl
 testing-gathering/
+fibonacci*.pyd
+fibonacci*.py
+test_fibonacci.pyx
+test_fibonacci.c
