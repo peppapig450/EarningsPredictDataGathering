@@ -1,5 +1,10 @@
 # Ideas
 
+## Task Creating
+Rather than using a dequeue for the current_category, have each "symbols window" have flags for each data_category, so that once a result for one category is processed, its immediately put back into the io_queue
+
+- this can probably be done with a callback signaling the TaskHandler class to change the datacategory, and the Tasktype and put it back in the appropiate queue.
+
 ## UVloop
 - Use uvloop on macos for increased asyncio speed
 
