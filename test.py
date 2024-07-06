@@ -1,10 +1,11 @@
 import asyncio
 import multiprocessing
-import aiomultiprocess
 from queue import Full, Empty
 from typing import Any
 import logging
 import cProfile
+
+# import fibonacci_solver
 
 
 async def async_function(x):
@@ -13,7 +14,7 @@ async def async_function(x):
     return x * x
 
 
-def fibonacci(n, max_depth=30):  # Add max_depth parameter
+def fibonacci(n, max_depth=20):  # Add max_depth parameter
     if n <= 1:
         return n
     if n > max_depth:
@@ -21,42 +22,31 @@ def fibonacci(n, max_depth=30):  # Add max_depth parameter
     return fibonacci(n - 1) + fibonacci(n - 2)
 
 
-def cpu_function(queue: multiprocessing.Queue):
+def cpu_function(queue: multiprocessing.Queue, results):
     while True:
         try:
             task = queue.get(timeout=1)
             if task is None:
                 break
+            # result = fibonacci_solver.fibonacci(task)
             result = fibonacci(task)
-            print(f"Cpu result: {result}")
+            results.append(result)
         except Full:
             continue
-
-
-async def aiomultiprocess_pool(io_queue, cpu_queue):
-    """Function to hold the aiomultiprocess implementation while we test ThreadPool"""
-    async with aiomultiprocess.Pool(processes=4) as io_pool:
-        while True:
-            try:
-                task = io_queue.get_nowait()
-                await io_pool.apply(
-                    async_function, kwds={"x": task, "queue": cpu_queue}
-                )
-            except Empty:
-                break
 
 
 async def main():
     with cProfile.Profile() as pr:
         with multiprocessing.Manager() as manager:
             cpu_queue = manager.Queue()
+            results = manager.list()
             logger = multiprocessing.log_to_stderr()
             logger.setLevel(logging.INFO)
 
             tasks = set(range(100))
 
             with multiprocessing.Pool(processes=6) as cpu_pool:
-                cpu_pool.apply_async(cpu_function, args=(cpu_queue,))
+                cpu_pool.apply_async(cpu_function, args=(cpu_queue, results))
 
                 gatherers = [
                     asyncio.create_task(async_function(task)) for task in tasks
@@ -66,6 +56,10 @@ async def main():
 
                 cpu_pool.close()
                 cpu_pool.join()
+
+            # Print results after processing
+            for result in results:
+                print(f"Fibonacci number: {result}")
         pr.dump_stats("testing-profile.prof")
 
 
