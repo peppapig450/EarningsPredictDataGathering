@@ -8,6 +8,7 @@ from .task_base import Task
 # TODO: check ideas.md
 
 
+# TODO: task handler can't run both io_worker and cpu_worker at once, subclass it and maybe use a proxy
 class TaskHandler:
     def __init__(
         self,
