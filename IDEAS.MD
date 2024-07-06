@@ -1,5 +1,8 @@
 # Ideas
 
+## UVloop
+- Use uvloop on macos for increased asyncio speed
+
 ## Global Sleeping and maximum efficiency
 - Change from using 1 manager for both process pools to using a central broker that holds two seperate managers
 
