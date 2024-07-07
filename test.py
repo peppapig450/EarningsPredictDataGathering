@@ -4,6 +4,7 @@ from queue import Full, Empty
 from typing import Any
 import logging
 import cProfile
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 
 # import fibonacci_solver
 
@@ -34,10 +35,28 @@ def cpu_function(queue: multiprocessing.Queue, results):
         except Full:
             continue
 
+class TaskHandler:
+    def __init__(self) -> None:
+        self.io_queue = asyncio.Queue()
+        self.cpu_queue = asyncio.Queue()
+        
+        
+    async def io_consumer(self):
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            while True:
+                # Fetch an I/O task
+                task = await self.io_queue.get()
+                if task is None:
+                    break
+                
+                result
 
-async def main():
+
+        
+async def main_old():
     with cProfile.Profile() as pr:
         with multiprocessing.Manager() as manager:
+            io_queue = manager.Queue()
             cpu_queue = manager.Queue()
             results = manager.list()
             logger = multiprocessing.log_to_stderr()
@@ -48,6 +67,8 @@ async def main():
             with multiprocessing.Pool(processes=6) as cpu_pool:
                 cpu_pool.apply_async(cpu_function, args=(cpu_queue, results))
 
+                with ProcessPoolExecutor(max_workers=1) as io_pool:
+                    
                 gatherers = [
                     asyncio.create_task(async_function(task)) for task in tasks
                 ]
