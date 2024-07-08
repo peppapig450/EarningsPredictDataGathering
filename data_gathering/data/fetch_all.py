@@ -62,6 +62,7 @@ def main():
                     handler.add_task(task)
 
                 # Start io and cpu worker
+                # TODO: maybe rewrite these sepearetly and use an asyncio.run or something to do it
                 handler.io_worker()
                 handler.cpu_worker()
 
