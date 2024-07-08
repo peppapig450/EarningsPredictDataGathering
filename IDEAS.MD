@@ -5,11 +5,15 @@ Rather than using a dequeue for the current_category, have each "symbols window"
 
 - this can probably be done with a callback signaling the TaskHandler class to change the datacategory, and the Tasktype and put it back in the appropiate queue.
 
+## How to run the tasks
+Use a Session Handler that can take APIRequests (dataclass) and run them under an aiohttp pool, which task handler takes in a callback and handles further.
+The functions to run the api request as well as the processing, will be contained in each subclass of Task, with it being run by the appropiate handdler.
+
 ## UVloop
 - Use uvloop on macos for increased asyncio speed
 
 ## Global Sleeping and maximum efficiency
-- Change from using 1 manager for both process pools to using a central broker that holds two seperate managers
+- sleeping could be achieved per data task by SessionHandler
 
 - if sleep is neeeded, increase the rate at which we send data to the processing queue to minimize time we're doing nothing.
 
