@@ -47,6 +47,7 @@ def main():
             while data_categories:
                 current_category = data_categories.popleft()
 
+                # Change to a more object oriented approach using what the task will do rather than creating?
                 # Start the initial tasks for each symbol in the current category
                 tasks = [
                     creator.create_task(
@@ -58,8 +59,8 @@ def main():
                     for window, _ in symbols_iterator
                 ]
 
-                for task in tasks:
-                    handler.add_task(task)
+                # Add all the tasks to the TaskHandler
+                handler.add_tasks(tasks)
 
                 # Start io and cpu worker
                 # TODO: maybe rewrite these sepearetly and use an asyncio.run or something to do it

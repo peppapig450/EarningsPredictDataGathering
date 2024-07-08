@@ -1,9 +1,10 @@
 from multiprocessing import Queue as MPQueue
 from multiprocessing.managers import Namespace
 from multiprocessing.pool import Pool as _Pool
+from typing import Any
 
-from .task_enums import TaskType
 from .task_base import Task
+from .task_enums import TaskType
 
 # TODO: check ideas.md
 
@@ -23,6 +24,9 @@ class TaskHandler:
         self.io_queue: MPQueue = io_queue
         self.cpu_queue: MPQueue = cpu_queue
         self.cpu_result_namespace: Namespace = cpu_result_ns
+
+    def add_tasks(self, tasks: list[Any]):
+        _ = [self.add_task(task) for task in tasks]
 
     def add_task(self, task: Task):
         if task.task_type == TaskType.IO:
