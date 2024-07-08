@@ -16,7 +16,7 @@ class TaskType(Enum):
 
 
 class DataCategory(StrEnum):
-    """Enum mapping Data Categoreis to the appropiate Task subclass."""
+    """Enum mapping Data Data Categories to the appropiate Task subclass."""
 
     HISTORICAL = "HistoricalDataTask"  # Historical Price Data
     FUNDAMENTALS = "FundamentalMetricsTask"  # Fundamental Metrics
