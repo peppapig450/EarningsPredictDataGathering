@@ -7,6 +7,19 @@ import pandas as pd
 from pprint import pprint
 import io
 import timeit
+from dataclasses import dataclass
+
+@dataclass
+class UpcomingEarning:
+    symbol: str
+    report_dates: str
+    fiscal_dates: str
+    currency: str
+    estimate: float
+# TODO: Symbol can have multiple reportDates and fiscalDates returned when using the 12 month window
+# not sure how to handle this with the dataclass or if it's possible.
+# Not sure how to create the UpcomingEarning with pandas or to stick with csv reader
+# csv reader is faster in benchmarks.
 
 
 def build_earnings_calendar_url(api_key, month: int = 3):
@@ -67,7 +80,22 @@ def make_api_request_csv(url):
             return data
         raise Exception(f"API request failed with status code: {response.status_code}")
 
+def create_upcoming_earnings(group):
+    """
+    This function takes a pandas group (DataFrame) and creates an UpcomingEarning dataclass.
 
+    Args:
+        group: A pandas group (DataFrame) representing data for a specific symbol.
+
+    Returns:
+        An UpcomingEarning dataclass.
+    """
+    row = group.iloc[0]
+    return UpcomingEarning(row['symbol'], row['reportDate'], row['fiscalDateEnding'], row['currency'], row.get('estimate', ''))
+
+def create_upcoming_earnings_by_symbol(df: pd.DataFrame):
+    upcoming_earnings = df.groupby('symbol').apply(lambda row: UpcomingEarning(**row), axis=1).tolist()
+    
 def benchmark_csv_parsing(url, method):
     """
     This function benchmarks the time taken to parse CSV data using the specified method.
@@ -85,17 +113,20 @@ def benchmark_csv_parsing(url, method):
         stmt = """make_api_request_csv(url)"""
     else:
         raise ValueError("Invalid parsing method specified.")
-    return timeit.timeit(stmt, number=5)
+    return timeit.timeit(stmt, number=5, globals=globals())
 
 
 if __name__ == "__main__":
     api_keys = APIKeys()
     alpha_vantage_key = api_keys.get_key(APIService.ALPHA_VANTAGE)
     url = build_earnings_calendar_url(alpha_vantage_key, 12)
-    # Benchmarking using timeit
-    pandas_time = benchmark_csv_parsing(url, "pandas")
-    csv_time = benchmark_csv_parsing(url, "csv")
+    
+    data = make_api_request_csv(url)
+    pprint(data)
+    ## Benchmarking using timeit
+    #pandas_time = benchmark_csv_parsing(url, "pandas")
+    #csv_time = benchmark_csv_parsing(url, "csv")
 
     # Print results
-    print(f"Average execution time for pandas: {pandas_time:.4f} seconds")
-    print(f"Average execution time for csv: {csv_time:.4f} seconds")
+    #print(f"Average execution time for pandas: {pandas_time:.4f} seconds")
+    #print(f"Average execution time for csv: {csv_time:.4f} seconds")
