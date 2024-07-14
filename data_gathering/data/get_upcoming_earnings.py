@@ -75,7 +75,7 @@ class UpcomingEarnings:
                     UpcomingEarning(**item)
                     for item in data
                     if not re.search(r"[-.][A-Z]+$", item["symbol"])
-                    and not item["symbol"] in cache
+                    and item["symbol"] not in cache
                 ]
                 if not parsed_data:
                     raise NoUpcomingEarningsError()
