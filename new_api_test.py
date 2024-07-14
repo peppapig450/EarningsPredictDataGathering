@@ -7,20 +7,38 @@ import pandas as pd
 from pprint import pprint
 import io
 import timeit
-from dataclasses import dataclass
+from dataclasses import dataclass, InitVar
+from datetime import datetime
+import logging
 
-@dataclass
-class UpcomingEarning:
-    symbol: str
-    report_dates: str
-    fiscal_dates: str
-    currency: str
-    estimate: float
 # TODO: Symbol can have multiple reportDates and fiscalDates returned when using the 12 month window
 # not sure how to handle this with the dataclass or if it's possible.
 # Not sure how to create the UpcomingEarning with pandas or to stick with csv reader
 # csv reader is faster in benchmarks.
 
+@dataclass
+class UpcomingEarning:
+    symbol: str
+    report_date: str | datetime
+    fiscal_year_end: str | datetime
+    currency: str
+    date_format: InitVar[str] = "%Y-%m-%d"
+    
+    def __post_init__(self, date_format: str):
+        if isinstance(self.report_date, str):
+            self.report_date = datetime.strptime(self.report_date, date_format)
+        if isinstance(self.fiscal_year_end, str):
+            self.fiscal_year_end = datetime.strptime(self.fiscal_year_end, date_format)
+    
+    def __str__(self):
+        return self.symbol
+        
+    
+class UpcomingEarnings:
+    def __init__(self, api_keys: APIKeys) -> None:
+        self.api_key = api_keys.get_key(APIService.ALPHA_VANTAGE)
+        self.base_url = "https://www.alphavantage.co/query"
+        self.logger = logging.getLogger(__name__)
 
 def build_earnings_calendar_url(api_key, month: int = 3):
     """
