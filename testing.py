@@ -19,10 +19,10 @@ import pyarrow.parquet as pq
 from pyarrow import compute
 
 from data_gathering.config.api_keys import APIKeys, APIService
-from data_gathering.data.get_upcoming_earnings import UpcomingEarnings
 from data_gathering.data.historical.historical_data_session import (
     HistoricalDataSessionManager,
 )
+from data_gathering.upcoming_earnings.get_upcoming_earnings import UpcomingEarningsGatherer
 from data_gathering.models.date_range import DateRange, TimeUnit
 from data_gathering.models.mappings import historical_data_mapping
 from data_gathering.models.symbol_iterator import BatchIteratorWithCount
