@@ -33,15 +33,23 @@ class UpcomingEarning:
                 "currency": data["currency"],
             }
             # Check if all required keys are present before creating the instance
-            if all(key.name in mapped_data for key in fields(cls)):
-                return cls(**mapped_data)
-            return None
+            if not all(key.name in mapped_data for key in fields(cls)):
+                missing_keys = [key.name for key in fields(cls) if key.name not in mapped_data]
+                raise ValueError(f"Missing required keys: {', '.join(missing_keys)}")
+            
+            return cls(**mapped_data)
         except KeyError as exc:
             logger.warning(
                 f"Missing key in data from the CSV returned: {exc.args[0]}",
                 exc_info=True,
             )
-            pass
+            pass # Non-fatal error just log and move on
+        except ValueError as exc:
+            logging.warning(
+                f"Value error while creating UpcomingEarning instance: {exc!s}",
+                exc_info=True
+            )
+            pass # Non-fatal error just log and move on
 
     def _create_date_tuple(self, date_value: str | DateTuple, date_format: str):
         if isinstance(date_value, str):
