@@ -4,7 +4,7 @@ import requests
 from requests.models import Response
 from pydantic import ValidationError
 
-from data_gathering.data.get_upcoming_earnings import UpcomingEarning, NoUpcomingEarningsError, UpcomingEarnings
+from data_gathering.upcoming_earnings.get_upcoming_earnings import UpcomingEarning, NoUpcomingEarningsError, UpcomingEarnings
 from data_gathering.utils.cache.cache_registry import CacheRegistry
 from data_gathering.utils.cache.blacklist_cache import BlacklistSymbolCache
 from data_gathering.config.api_keys import APIKeys, APIService

@@ -3,7 +3,7 @@ from multiprocessing import Manager, Pool
 from multiprocessing import Queue as MPQueue
 
 from data_gathering.config import APIKeys, Config
-from data_gathering.data.get_upcoming_earnings import UpcomingEarnings
+from data_gathering.upcoming_earnings.get_upcoming_earnings import UpcomingEarnings
 
 from data_gathering.models import BatchIteratorWithCount, DateRange
 from data_gathering.tasks import TaskCreator, TaskHandler, TaskType, DataCategory
