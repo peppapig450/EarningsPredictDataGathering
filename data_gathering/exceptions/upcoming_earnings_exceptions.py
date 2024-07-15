@@ -14,3 +14,10 @@ class NoUpcomingEarningsError(EarningsPredictError):
     ) -> None:
 
         super().__init__(message, notes, include_traceback)
+
+class UpcomingEarningCreationError(EarningsPredictError):
+    """
+    Exception raised when an error occurs while creating an UpcomingEarning instance.
+    This is suppressed and just serves to prevent UpcomingEarning.from_dict to return None
+    """
+    pass

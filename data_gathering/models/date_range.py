@@ -1,10 +1,16 @@
-# utils.py
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import StrEnum
-from typing import Any, Optional, Self
-from dataclasses import dataclass
+from typing import Any, NamedTuple, Self
 
 
+class DateTuple(NamedTuple):
+    date: datetime
+    date_str: str
+    
+    def __str__(self):
+        return self.date_str
+    
 class TimeUnit(StrEnum):
     DAYS = "days"
     WEEKS = "weeks"
@@ -95,8 +101,8 @@ class DateRange:
     @classmethod
     def get_dates(
         cls,
-        init_offset: Optional[int] = None,
-        date_window: Optional[int] = None,
+        init_offset: int | None = None,
+        date_window: int | None = None,
         init_unit: TimeUnit = TimeUnit.DAYS,
         date_window_unit: TimeUnit = TimeUnit.DAYS,
     ) -> Self:

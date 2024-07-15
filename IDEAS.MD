@@ -1,5 +1,9 @@
 # Ideas
 
+## ClientSession manager
+Create ClientSessions for each api, setting a base url, and the api keys for that API.
+That way we can use that for all the requests to it and avoid having to inject api keys across objects.
+
 ## Task Creating
 Rather than using a dequeue for the current_category, have each "symbols window" have flags for each data_category, so that once a result for one category is processed, its immediately put back into the io_queue
 
