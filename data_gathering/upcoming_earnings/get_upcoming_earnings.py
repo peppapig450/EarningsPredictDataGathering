@@ -8,12 +8,13 @@ from typing import TYPE_CHECKING, Sequence
 
 import requests
 
-from ..config.api_keys import APIService
+from ..config.api_keys import APIService, ApiKey, APIKeys
 from ..exceptions import NoUpcomingEarningsError, UpcomingEarningCreationError
 from .upcoming_earning import UpcomingEarning
 
+
 if TYPE_CHECKING:
-    from data_gathering.config.api_keys import ApiKey, APIKeys
+    pass
     
 class UpcomingEarningsGatherer:
     """
@@ -53,7 +54,7 @@ class UpcomingEarningsGatherer:
             6
         """
         input_date = datetime.strptime(target_date, "%Y-%m-%d")
-        today = date.today()
+        today = datetime.combine(date.today(), datetime.min.time()) 
         
         # Calculate the difference in months
         diff_months = (today - input_date).days // 30
