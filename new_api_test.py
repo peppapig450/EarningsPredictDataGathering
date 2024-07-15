@@ -10,26 +10,42 @@ import timeit
 from dataclasses import dataclass, InitVar
 from datetime import datetime
 import logging
+from typing import NamedTuple
 
 # TODO: Symbol can have multiple reportDates and fiscalDates returned when using the 12 month window
 # not sure how to handle this with the dataclass or if it's possible.
 # Not sure how to create the UpcomingEarning with pandas or to stick with csv reader
 # csv reader is faster in benchmarks.
-
+class DateTuple(NamedTuple):
+    date: datetime
+    date_str: str
+    
+    def __str__(self):
+        return self.date_str
+    
+#XXX: Maybe use InitVar for the initial report_date and fiscal_year_date with kw args or something
+#XXX: or subclass DateTuple
 @dataclass
 class UpcomingEarning:
     symbol: str
-    report_date: str | datetime
-    fiscal_year_end: str | datetime
+    report_date: str | DateTuple
+    fiscal_year_end: str | DateTuple
     currency: str
     date_format: InitVar[str] = "%Y-%m-%d"
     
     def __post_init__(self, date_format: str):
-        if isinstance(self.report_date, str):
-            self.report_date = datetime.strptime(self.report_date, date_format)
-        if isinstance(self.fiscal_year_end, str):
-            self.fiscal_year_end = datetime.strptime(self.fiscal_year_end, date_format)
-    
+        self.report_date = self._create_date_tuple(self.report_date, date_format)
+        self.fiscal_year_end = self._create_date_tuple(self.fiscal_year_end, date_format)
+            
+    def _create_date_tuple(self, date_value: str | DateTuple, date_format: str):
+        if isinstance(date_value, str):
+            date_obj = datetime.strptime(date_value, date_format)
+            date_str = date_value
+        else:
+            date_obj = date_value.date
+            date_str = date_value.date_str
+        return DateTuple(date_obj, date_str)
+        
     def __str__(self):
         return self.symbol
         
@@ -39,6 +55,8 @@ class UpcomingEarnings:
         self.api_key = api_keys.get_key(APIService.ALPHA_VANTAGE)
         self.base_url = "https://www.alphavantage.co/query"
         self.logger = logging.getLogger(__name__)
+        
+    def get_upcoming_earnings_list(self, to_date: datetime, timeout)
 
 def build_earnings_calendar_url(api_key, month: int = 3):
     """
