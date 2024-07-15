@@ -3,6 +3,7 @@ from dataclasses import InitVar, dataclass, fields
 from datetime import datetime
 from typing import Any
 
+from ..exceptions import UpcomingEarningCreationError
 from ..models import DateTuple
 
 logger = logging.getLogger(__name__)
@@ -43,13 +44,13 @@ class UpcomingEarning:
                 f"Missing key in data from the CSV returned: {exc.args[0]}",
                 exc_info=True,
             )
-            pass # Non-fatal error just log and move on
+            raise UpcomingEarningCreationError # avoid returning None
         except ValueError as exc:
             logging.warning(
                 f"Value error while creating UpcomingEarning instance: {exc}",
                 exc_info=True
             )
-            pass # Non-fatal error just log and move on
+            raise UpcomingEarningCreationError # avoid returning None
 
     def _create_date_tuple(self, date_value: str | DateTuple, date_format: str):
         if isinstance(date_value, str):
@@ -68,3 +69,5 @@ class UpcomingEarning:
 
     def __str__(self):
         return self.symbol
+
+    
