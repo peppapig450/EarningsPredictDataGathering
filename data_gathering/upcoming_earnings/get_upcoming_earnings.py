@@ -1,113 +1,157 @@
 import logging
-import re
-from typing import Optional
+from contextlib import suppress
+from csv import DictReader
+from csv import Error as CsvError
+from datetime import date, datetime
+from io import StringIO
+from typing import TYPE_CHECKING, Sequence
 
 import requests
-from pydantic import ValidationError
 
-from data_gathering.config.api_keys import APIKeys, APIService
-from data_gathering.models import UpcomingEarning
-from data_gathering.utils.cache.blacklist_cache import BlacklistSymbolCache
-from data_gathering.utils.cache.cache_registry import CacheRegistry
-from data_gathering.exceptions import NoUpcomingEarningsError
+from ..config.api_keys import APIService
+from ..exceptions import NoUpcomingEarningsError, UpcomingEarningCreationError
+from .upcoming_earning import UpcomingEarning
 
-
-class UpcomingEarnings:
+if TYPE_CHECKING:
+    from data_gathering.config.api_keys import ApiKey, APIKeys
+    
+class UpcomingEarningsGatherer:
     """
     A class to retrieve upcoming earnings data.
 
     Attributes:
         api_key (str): The API key for accessing the financial modeling prep API.
-        cache_registry (CacheRegistry): The registry to manage cache instances.
         base_url (str): The base URL for the financial modeling prep API.
         logger (logging.Logger): Logger for the class.
-        session (requests.Session): A session object to persist certain parameters across requests.
 
     Methods:
-        get_upcoming_earnings_list(from_date: str, to_date: str, timeout: Optional[int] = 20) -> List[UpcomingEarning]:
+        get_upcoming_earnings_list(to_date: str, timeout: Optional[int] = 20) -> List[UpcomingEarning]:
             Retrieves a list of upcoming earnings within a specified date range.
-        get_upcoming_earnings_list_strings(from_date: str, to_date: str, timeout: Optional[int] = 20) -> List[str]:
+        get_upcoming_earnings_list_strings(to_date: str, timeout: Optional[int] = 20) -> List[str]:
             Retrieves upcoming earnings symbols as strings within a specified date range.
     """
-
-    def __init__(self, api_keys: APIKeys, cache_registry: CacheRegistry):
-        self.api_key = api_keys.get_key(APIService.FMP)
-        self.cache_registry = cache_registry
-        self.base_url = "https://financialmodelingprep.com/api/v3/earning_calendar"
+    def __init__(self, api_keys: APIKeys) -> None:
+        self.api_key = api_keys.get_key(APIService.ALPHA_VANTAGE)
+        self.base_url = "https://www.alphavantage.co/query"
         self.logger = logging.getLogger(__name__)
+    
+    def _calculate_date_proximity(self, target_date: str):
+        """
+        Calculate the proximity of a given target date to predefined intervals of 3, 6, or 12 months from today.
 
-    # TODO: exception groups?
+        Args:
+            target_date (str): The target date as a string in the format 'YYYY-MM-DD'.
+
+        Returns:
+            int: The interval (3, 6, or 12) months that the difference between today's date and the target date is closest to.
+
+        Raises:
+            ValueError: If the target_date is not in the format 'YYYY-MM-DD'.
+
+        Example:
+            >>> instance._calculate_date_proximity('2023-01-01')
+            6
+        """
+        input_date = datetime.strptime(target_date, "%Y-%m-%d")
+        today = date.today()
+        
+        # Calculate the difference in months
+        diff_months = (today - input_date).days // 30
+        
+        # Target intervals, these are the month values Alpha Vantage's api takes
+        intervals = (3, 6, 12)
+        
+        # Find the closest interval
+        closest = min(intervals, key=lambda month: abs(diff_months - month))
+        
+        return closest
+    
     def get_upcoming_earnings_list(
-        self, from_date: str, to_date: str, timeout: Optional[int] = 20
-    ) -> list[UpcomingEarning]:
+        self, to_date: str, timeout: int = 20
+    ) -> Sequence[UpcomingEarning]:
         """
-        Retrieves a list of upcoming earnings within a specified date range.
+        Retrieve a list of upcoming earnings reports.
+
+        This method calculates the proximity of the given target date to predefined intervals (3, 6, or 12 months)
+        and requests the earnings calendar data from an external API. It then parses the CSV response and creates
+        a list of `UpcomingEarning` instances.
 
         Args:
-            from_date (str): The start date of the date range in the format 'YYYY-MM-DD'.
-            to_date (str): The end date of the date range in the format 'YYYY-MM-DD'.
-            timeout (int, optional): The request timeout in seconds. Defaults to 20.
+            to_date (str): The target date as a string in the format 'YYYY-MM-DD'.
+            timeout (int, optional): The timeout for the API request in seconds. Defaults to 20.
 
         Returns:
-            List[UpcomingEarning]: A list of UpcomingEarning objects representing upcoming earnings data.
+            list[UpcomingEarning]: A list of `UpcomingEarning` instances.
 
         Raises:
-            NoUpcomingEarningsError: If an error occurs during the retrieval process, or if the parsed data is empty.
-                - If the response status code indicates an error (logged).
-                - If the response data does not match the expected format (logged).
+            NoUpcomingEarningsError: If there are no upcoming earnings in the response or if an error occurs during
+                                    the retrieval and parsing of the data.
+
+        Example:
+            >>> earnings = instance.get_upcoming_earnings_list('2024-08-01')
+            >>> for earning in earnings:
+            >>>     print(earning)
         """
+        month = self._calculate_date_proximity(to_date)
+        payload: dict[str, str | ApiKey] = {
+            "function": "EARNINGS_CALENDAR",
+            "horizon": f"{month}month",
+            "apikey": self.api_key,
+        }
 
-        @self.cache_registry.cache_decorator(BlacklistSymbolCache)
-        def inner_get_upcoming_earnings_list(
-            cache: BlacklistSymbolCache,
-            from_date: str,
-            to_date: str,
-            timeout: Optional[int] = 20,
-        ) -> list[UpcomingEarning]:
-            payload = {"from": from_date, "to": to_date, "apikey": self.api_key}
+        response = requests.get(self.base_url, params=payload, timeout=timeout)
+        try:
+            response.raise_for_status()
+            csv_data = StringIO(response.text)
+            reader = DictReader(csv_data)
 
-            response = requests.get(self.base_url, params=payload, timeout=timeout)
-            response.raise_for_status()  # Raise for non-2xx status codes
-            try:
-                response.raise_for_status()
-                data = response.json()
-                parsed_data = [
-                    UpcomingEarning(**item)
-                    for item in data
-                    if not re.search(r"[-.][A-Z]+$", item["symbol"])
-                    and item["symbol"] not in cache
-                ]
-                if not parsed_data:
-                    raise NoUpcomingEarningsError()
-                return parsed_data
-            except (ValidationError, requests.exceptions.RequestException) as e:
-                self.logger.critical(
-                    f"Error while retrieving upcoming earnings list: {str(e)}",
-                    exc_info=True,
-                )
-                raise NoUpcomingEarningsError() from e
+            upcoming_earnings_list: Sequence[UpcomingEarning] = []
+            for row in reader:
+                # Suppress the error to ignore it, as it's non-critical and is already logged
+                with suppress(UpcomingEarningCreationError):
+                    upcoming_earnings_list.append(UpcomingEarning.from_dict(row))
+                    
+            if not upcoming_earnings_list:
+                raise NoUpcomingEarningsError("upcoming_earnings_list is empty.")
+            return upcoming_earnings_list
+        
+        except CsvError as e:
+            message = "CSV parsing error occurred while retrieving upcoming earnings list"
+            self.logger.critical(f"{message}: {str(e)}", exc_info=True, stack_info=True)
+            raise NoUpcomingEarningsError(message) from e
+        
+        except requests.exceptions.HTTPError as e:
+            message = "HTTP error occurred while retrieving upcoming earnings list"
+            self.logger.critical(f"{message}: {str(e)}", exc_info=True, stack_info=True)
+            raise NoUpcomingEarningsError(message) from e
+        
+        except NoUpcomingEarningsError as e:
+            message = "No upcoming earnings found"
+            self.logger.critical(f"{message}: {str(e)}", exc_info=True, stack_info=True)
+            raise NoUpcomingEarningsError(message) from e
 
-        return inner_get_upcoming_earnings_list(from_date, to_date, timeout)
-
-    def get_upcoming_earnings_list_strings(
-        self, from_date: str, to_date: str, timeout=20
-    ) -> list[str]:
+    def get_upcoming_earnings_list_strings(self, to_date: str, timeout: int = 20) -> list[str]:
         """
-        Retrieves upcoming earnings symbols as strings within a specified date range.
+        Retrieve a list of upcoming earnings report symbols.
 
-        This method is a wrapper around `get_upcoming_earnings_list`, providing a convenient way to
-        retrieve only the symbols from the upcoming earnings data.
+        This method fetches the upcoming earnings reports using the `get_upcoming_earnings_list` method 
+        and extracts the symbols of the companies with upcoming earnings.
 
         Args:
-            from_date (str): The start date of the date range in the format 'YYYY-MM-DD'.
-            to_date (str): The end date of the date range in the format 'YYYY-MM-DD'.
-            timeout (int, optional): The request timeout in seconds. Defaults to 20.
+            to_date (str): The target date as a string in the format 'YYYY-MM-DD'.
+            timeout (int, optional): The timeout for the API request in seconds. Defaults to 20.
 
         Returns:
-            List[str]: A list of symbols for upcoming earnings within the specified date range.
+            list[str]: A list of symbols for companies with upcoming earnings reports.
 
         Raises:
-            NoUpcomingEarningsError: If an error occurs during the retrieval process.
+            NoUpcomingEarningsError: If there are no upcoming earnings in the response or if an error occurs 
+                                    during the retrieval and parsing of the data.
+
+        Example:
+            >>> symbols = instance.get_upcoming_earnings_list_strings('2024-08-01')
+            >>> for symbol in symbols:
+            >>>     print(symbol)
         """
-        earnings_list = self.get_upcoming_earnings_list(from_date, to_date, timeout)
-        return [symbols.symbol for symbols in earnings_list]
+        earnings_list = self.get_upcoming_earnings_list(to_date, timeout)
+        return [earning.symbol for earning in earnings_list]
