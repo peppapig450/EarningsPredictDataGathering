@@ -3,7 +3,7 @@ from multiprocessing import Manager, Pool
 from multiprocessing import Queue as MPQueue
 
 from data_gathering.config import APIKeys, Config
-from data_gathering.upcoming_earnings.get_upcoming_earnings import UpcomingEarnings
+from data_gathering.upcoming_earnings import UpcomingEarningsGatherer
 
 from data_gathering.models import BatchIteratorWithCount, DateRange
 from data_gathering.tasks import TaskCreator, TaskHandler, TaskType, DataCategory
@@ -23,7 +23,7 @@ def main():
         config = Config()
         creator = TaskCreator(config)
 
-        upcoming = UpcomingEarnings(api_keys, cache)
+        upcoming = UpcomingEarningsGatherer(api_keys)
 
         with Pool(processes=2) as io_pool, Pool(processes=2) as cpu_pool:
 
@@ -36,7 +36,7 @@ def main():
 
             try:
                 symbols = upcoming.get_upcoming_earnings_list_strings(
-                    upcoming_dates.from_date, upcoming_dates.to_date
+                    upcoming_dates.from_date
                 )
                 symbols_iterator = BatchIteratorWithCount(symbols, fraction=0.1)
             except Exception as e:
