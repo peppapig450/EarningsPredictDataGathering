@@ -1,10 +1,16 @@
-# utils.py
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import StrEnum
-from typing import Any, Self, 
-from dataclasses import dataclass
+from typing import Any, NamedTuple, Self
 
-class
+
+class DateTuple(NamedTuple):
+    date: datetime
+    date_str: str
+    
+    def __str__(self):
+        return self.date_str
+    
 class TimeUnit(StrEnum):
     DAYS = "days"
     WEEKS = "weeks"
