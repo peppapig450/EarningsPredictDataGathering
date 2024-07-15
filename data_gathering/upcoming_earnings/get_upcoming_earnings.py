@@ -112,7 +112,7 @@ class UpcomingEarningsGatherer:
                     upcoming_earnings_list.append(UpcomingEarning.from_dict(row))
                     
             if not upcoming_earnings_list:
-                raise NoUpcomingEarningsError("upcoming_earnings_list is empty.")
+                raise NoUpcomingEarningsError("upcoming_earnings_list is empty")
             return upcoming_earnings_list
         
         except CsvError as e:
