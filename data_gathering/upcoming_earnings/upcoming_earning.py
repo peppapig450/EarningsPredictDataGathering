@@ -46,7 +46,7 @@ class UpcomingEarning:
             pass # Non-fatal error just log and move on
         except ValueError as exc:
             logging.warning(
-                f"Value error while creating UpcomingEarning instance: {exc!s}",
+                f"Value error while creating UpcomingEarning instance: {exc}",
                 exc_info=True
             )
             pass # Non-fatal error just log and move on
