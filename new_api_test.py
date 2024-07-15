@@ -155,6 +155,32 @@ class UpcomingEarnings:
             message = "Error while retrieving upcoming earnings list"
             self.logger.critical(f"{message}: {str(e)}", e, exc_info=True, stack_info=True)
             raise NoUpcomingEarningsError(message) from e
+    
+    def get_upcoming_earnings_list_strings(self, to_date: str, timeout: int = 20) -> list[str]:
+        """
+        Retrieve a list of upcoming earnings report symbols.
+
+        This method fetches the upcoming earnings reports using the `get_upcoming_earnings_list` method 
+        and extracts the symbols of the companies with upcoming earnings.
+
+        Args:
+            to_date (str): The target date as a string in the format 'YYYY-MM-DD'.
+            timeout (int, optional): The timeout for the API request in seconds. Defaults to 20.
+
+        Returns:
+            list[str]: A list of symbols for companies with upcoming earnings reports.
+
+        Raises:
+            NoUpcomingEarningsError: If there are no upcoming earnings in the response or if an error occurs 
+                                    during the retrieval and parsing of the data.
+
+        Example:
+            >>> symbols = instance.get_upcoming_earnings_list_strings('2024-08-01')
+            >>> for symbol in symbols:
+            >>>     print(symbol)
+        """
+        earnings_list = self.get_upcoming_earnings_list(to_date, timeout)
+        return [earning.symbol for earning in earnings_list]
 
 
 if __name__ == "__main__":
