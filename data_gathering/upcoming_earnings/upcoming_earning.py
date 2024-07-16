@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 type StringOrOther = str | Any
 type CsvRowData = dict[StringOrOther, StringOrOther]
 
-
+# TODO: maybe add quarter as a variable, calculating from the report_date
 # XXX: Maybe use InitVar for the initial report_date and fiscal_year_date with kw args or something
 @dataclass
 class UpcomingEarning:
