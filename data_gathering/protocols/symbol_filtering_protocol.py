@@ -1,0 +1,37 @@
+import re
+from abc import abstractmethod
+from typing import Protocol
+
+
+class SymbolsFilteringProtocol(Protocol):
+    """
+    A protocol that specifies the methods required for classes that handle symbol filtering
+    according to API-specific rules. This protocol ensures that any class implementing it
+    can define its own criteria for validating and filtering symbols based on the API's
+    requirements.
+
+    Methods:
+    -------
+    - get_valid_currencies: Returns a list of valid currencies (or exchanges) that are acceptable
+      for the API. This method provides the criteria for which symbols are considered valid
+      based on the API's supported currencies or exchanges.
+    - get_regex_filter_pattern: Returns a compiled regex pattern used to validate and filter
+      symbols according to the API's rules. This method ensures that symbols are in the correct
+      format and meet the API's pattern requirements.
+
+    Example:
+    -------
+        Implementing a class that follows this protocol would need to provide logic for 
+        determining which symbols are valid and how to format them according to the API's 
+        specifications. For instance, a class implementing this protocol might filter symbols
+        to only include those that match a specific format or are listed on certain exchanges.
+    """
+    @abstractmethod
+    def get_valid_currencies(self) -> list[str]:
+        """Return a list of valid currencies (or exchanges) supported by the API, which are
+        considered acceptable for the API's symbol filtering criteria."""
+        
+    @abstractmethod
+    def get_regex_filter_pattern(self) -> re.Pattern:
+        """Return a compiled regex pattern used to filter out symbols that do not match
+        the API's expected format or pattern requirements."""
