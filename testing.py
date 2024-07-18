@@ -45,7 +45,9 @@ async def gather_data(symbols_batches, api_keys, to_date, session_manager):
         List[Dict[str, Any]]: The complete data gathered.
     """
     data_collector = HistoricalDataGathering(
-        api_keys, to_date=to_date, session_manager=session_manager
+        api_keys,
+        to_date=to_date,
+        from_date="1983-01-01",
     )
     async with session_manager.manage_session() as session:
 
