@@ -5,13 +5,16 @@ from typing import Protocol
 
 class SymbolFilteringProtocol(Protocol):
     """
-    A protocol that specifies the methods required for classes that handle symbol filtering
+    A protocol for defining the methods required for classes that handle symbol filtering
     according to API-specific rules. This protocol ensures that any class implementing it
     can define its own criteria for validating and filtering symbols based on the API's
     requirements.
 
     Methods:
     -------
+    - get_api_name: Returns the name of the API for which the protocol is implemented. This
+      method allows the filtering system to distinguish between different APIs and apply
+      the appropriate filtering logic accordingly.
     - get_valid_currencies: Returns a list of valid currencies (or exchanges) that are acceptable
       for the API. This method provides the criteria for which symbols are considered valid
       based on the API's supported currencies or exchanges.
@@ -25,7 +28,17 @@ class SymbolFilteringProtocol(Protocol):
         determining which symbols are valid and how to format them according to the API's 
         specifications. For instance, a class implementing this protocol might filter symbols
         to only include those that match a specific format or are listed on certain exchanges.
+
+    Notes:
+    ------
+        The `get_api_name` method helps identify the API-specific implementation, which
+        can be useful for managing multiple APIs with different filtering criteria, and for 
+        caching filtered symbols in a dictionary with the API as the key.
     """
+    @abstractmethod
+    def get_api_name(self) -> str:
+        """Return the API name that the protocol is implementing filtering for."""
+    
     @abstractmethod
     def get_valid_currencies(self) -> list[str]:
         """Return a list of valid currencies (or exchanges) supported by the API, which are
