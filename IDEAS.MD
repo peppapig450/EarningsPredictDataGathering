@@ -1,5 +1,9 @@
 # Ideas
 
+## Project Wide Enum for API names
+Implement an Enum that holds all API names used in the project, this would be useful for API keys,
+and for filtering based on the API, or anything that is based on the API. This improves type checking.
+
 ## ClientSession manager
 Create ClientSessions for each api, setting a base url, and the api keys for that API.
 That way we can use that for all the requests to it and avoid having to inject api keys across objects.
