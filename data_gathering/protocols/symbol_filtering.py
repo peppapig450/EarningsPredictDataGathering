@@ -3,7 +3,7 @@ from abc import abstractmethod
 from typing import Protocol
 
 
-class SymbolsFilteringProtocol(Protocol):
+class SymbolFilteringProtocol(Protocol):
     """
     A protocol that specifies the methods required for classes that handle symbol filtering
     according to API-specific rules. This protocol ensures that any class implementing it

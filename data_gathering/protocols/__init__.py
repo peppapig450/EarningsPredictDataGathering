@@ -1,1 +1,1 @@
-from .symbol_filtering_protocol import SymbolsFilteringProtocol
+from .symbol_filtering import SymbolFilteringProtocol
