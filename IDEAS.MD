@@ -9,6 +9,27 @@ Rather than using a dequeue for the current_category, have each "symbols window"
 
 - this can probably be done with a callback signaling the TaskHandler class to change the datacategory, and the Tasktype and put it back in the appropiate queue.
 
+## Symbols Dispatching
+To handle either the symbols as strings or as the dataclasses, use a generic class such as this 
+```python
+from typing import Union, Generic
+
+T = TypeVar('T', EarningsReport, str)  # Generic type variable for either report or string
+
+class Symbol(Generic[T]):
+    """Generic class representing either a full earnings report or just a symbol string."""
+
+    def __init__(self, data: T):
+        self.data: T = data
+
+    def get_symbol(self) -> str:
+        """Extracts the symbol from the data, regardless of its type."""
+        if isinstance(self.data, EarningsReport):
+            return self.data.symbol
+        else:
+            return self.data
+```
+
 ## How to run the tasks
 Use a Session Handler that can take APIRequests (dataclass) and run them under an aiohttp pool, which task handler takes in a callback and handles further.
 The functions to run the api request as well as the processing, will be contained in each subclass of Task, with it being run by the appropiate handdler.
