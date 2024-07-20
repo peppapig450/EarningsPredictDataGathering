@@ -1,3 +1,7 @@
+"""
+Module to hold any protocol implementation for Alpaca Api
+"""
+
 from ..protocols import SymbolFilteringProtocol
 
 class AlpacaSymbolsFilterProtocol(SymbolFilteringProtocol):
