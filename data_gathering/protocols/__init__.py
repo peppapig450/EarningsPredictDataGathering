@@ -1,1 +1,3 @@
-from .symbol_filtering import SymbolFilteringProtocol, SymbolFilteringProtocolT
+from .symbol_filtering import SymbolFilteringProtocol
+
+__all__ = ["SymbolFilteringProtocol"]
