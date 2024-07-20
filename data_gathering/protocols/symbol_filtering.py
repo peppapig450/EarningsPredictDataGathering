@@ -1,5 +1,6 @@
-from abc import abstractmethod
-from typing import Protocol, runtime_checkable, TypeVar
+from typing import Protocol, runtime_checkable
+
+
 @runtime_checkable
 class SymbolFilteringProtocol(Protocol):
     """
@@ -33,18 +34,16 @@ class SymbolFilteringProtocol(Protocol):
         can be useful for managing multiple APIs with different filtering criteria, and for 
         caching filtered symbols in a dictionary with the API as the key.
     """
-    @abstractmethod
     def get_api_name(self) -> str:
         """Return the API name that the protocol is implementing filtering for."""
+        return ""
     
-    @abstractmethod
     def get_valid_currencies(self) -> list[str]:
         """Return a list of valid currencies (or exchanges) supported by the API, which are
         considered acceptable for the API's symbol filtering criteria."""
+        return [""]
         
-    @abstractmethod
     def get_regex_filter_pattern(self) -> str:
         """Return a regex pattern used to filter out symbols that do not match
         the API's expected format or pattern requirements."""
-        
-SymbolFilteringProtocolT = TypeVar("SymbolFilteringProtocolT", bound=SymbolFilteringProtocol)
+        return ""

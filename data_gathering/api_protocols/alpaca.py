@@ -2,9 +2,12 @@
 Module to hold any protocol implementation for Alpaca Api
 """
 
+from typing import Protocol
+
 from ..protocols import SymbolFilteringProtocol
 
-class AlpacaSymbolsFilterProtocol(SymbolFilteringProtocol):
+
+class AlpacaSymbolsFilterProtocol(SymbolFilteringProtocol, Protocol):
     def get_api_name(self) -> str:
         return "Alpaca"
 
