@@ -1,19 +1,14 @@
 import asyncio
 import cProfile
 import itertools
-import json
-import logging
-import pickle
-import re
-import datetime
-from collections import OrderedDict, defaultdict
-from datetime import date
-from typing import Optional, Any
-from urllib.parse import parse_qsl, quote, urlencode, urlparse, urlunparse
 
+import pickle
+
+from collections import OrderedDict, defaultdict
+from typing import Optional, Any
+from pprint import pprint
 import aiohttp
 import pandas as pd
-import requests
 import pyarrow as pa
 import pyarrow.parquet as pq
 from pyarrow import compute
@@ -31,7 +26,7 @@ from data_gathering.utils.logger_setup import setup_logging
 from data_gathering.data.historical.historical_gathering import HistoricalDataGathering
 
 
-async def gather_data(symbols_batches, api_keys, to_date, session_manager):
+async def gather_data(symbols_batches, api_keys, to_date, from_date, session_manager):
     """
     Gathers data for the specified symbols.
 
@@ -63,6 +58,7 @@ async def gather_data(symbols_batches, api_keys, to_date, session_manager):
         # Await the completion of all tasks
         data_results = await asyncio.gather(*tasks)
 
+    pprint(data_results)
     # Combine all the results for now
     return data_results
 
@@ -84,6 +80,7 @@ async def gather_data_for_batch(symbols, session, data_collector):
     initial_data, complete_url = await data_collector.make_api_request(
         session, symbols=symbols
     )
+    pprint(initial_data)
 
     # XXX: reset event in call back?
     if initial_data.get("next_page_token", None) is not None:
@@ -127,10 +124,10 @@ def create_dataframes(data_symbols):
 
 
 async def check_speed(
-    symbols_iterator, api_keys, session_manager, to_date="2024-05-04"
+    symbols_iterator, api_keys, session_manager, to_date="2024-07-15", from_date="1984-04-14"
 ):
     complete_data = await gather_data(
-        symbols_iterator, api_keys, to_date, session_manager
+        symbols_iterator, api_keys, to_date, from_date, session_manager
     )
     with open("output_data.pkl", "wb") as f:
         pickle.dump(complete_data, f)
@@ -140,9 +137,9 @@ async def check_speed(
 async def run_stuff():
     setup_logging()
     api_keys = APIKeys(load_from="config")
-    to_date = "2024-05-05"
+    to_date = "2024-07-15"
+    from_date = "1983-04-04"
 
-    cache = CacheRegistry()
     upcoming_dates = DateRange.get_dates(
         init_offset=1,
         date_window=80,
@@ -150,15 +147,15 @@ async def run_stuff():
         date_window_unit=TimeUnit.DAYS,
     )
 
-    upcoming = UpcomingEarnings(api_keys, cache)
+    upcoming = UpcomingEarningsGatherer(api_keys)
     symbols = upcoming.get_upcoming_earnings_list_strings(
-        upcoming_dates.from_date, upcoming_dates.to_date
+        upcoming_dates.from_date
     )
     symbols_iterator = BatchIteratorWithCount(symbols, fraction=0.025)
     session_manager = HistoricalDataSessionManager(api_keys)
 
     complete_data = await gather_data(
-        symbols_iterator, api_keys, to_date, session_manager
+        symbols_iterator, api_keys, to_date, from_date, session_manager
     )
     rename_data = rename_columns(complete_data)
 
