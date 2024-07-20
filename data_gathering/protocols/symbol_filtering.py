@@ -1,7 +1,6 @@
 from abc import abstractmethod
-from typing import Protocol
-
-
+from typing import Protocol, runtime_checkable, TypeVar
+@runtime_checkable
 class SymbolFilteringProtocol(Protocol):
     """
     A protocol for defining the methods required for classes that handle symbol filtering
@@ -47,3 +46,5 @@ class SymbolFilteringProtocol(Protocol):
     def get_regex_filter_pattern(self) -> str:
         """Return a regex pattern used to filter out symbols that do not match
         the API's expected format or pattern requirements."""
+        
+SymbolFilteringProtocolT = TypeVar("SymbolFilteringProtocolT", bound=SymbolFilteringProtocol)
