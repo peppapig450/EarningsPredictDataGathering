@@ -45,7 +45,7 @@ class SymbolsFilter:
             A compiled regular expression object.
         """
         if api_name not in self.compiled_regex_patterns:
-            self.compiled_regex_patterns[regex_pattern] = re.compile(regex_pattern)
+            self.compiled_regex_patterns[api_name] = re.compile(regex_pattern)
         return self.compiled_regex_patterns[api_name]
 
     def filter_symbol_by_regex(
