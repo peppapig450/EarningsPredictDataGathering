@@ -78,6 +78,7 @@ class SymbolsFilter:
         Returns:
             A list of symbols that match the valid currencies.
         """
+        #XXX: this can be simplified to a list comprehension if desired
         symbols: list[UpcomingEarning] = []
 
         for currency in valid_currencies:
