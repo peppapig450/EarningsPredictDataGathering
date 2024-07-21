@@ -17,7 +17,7 @@ class SymbolFilteringProtocol(Protocol):
     - get_valid_currencies: Returns a list of valid currencies (or exchanges) that are acceptable
       for the API. This method provides the criteria for which symbols are considered valid
       based on the API's supported currencies or exchanges.
-    - get_regex_filter_pattern: Returns a regex pattern used to validate and filter
+    - get_regex_pattern: Returns a regex pattern used to validate and filter
       symbols according to the API's rules. This method ensures that symbols are in the correct
       format and meet the API's pattern requirements.
 
@@ -43,7 +43,7 @@ class SymbolFilteringProtocol(Protocol):
         considered acceptable for the API's symbol filtering criteria."""
         return [""]
         
-    def get_regex_filter_pattern(self) -> str:
+    def get_regex_pattern(self) -> str:
         """Return a regex pattern used to filter out symbols that do not match
         the API's expected format or pattern requirements."""
         return ""

@@ -100,7 +100,7 @@ class SymbolsFilter:
             A tuple containing a list of filtered symbols and a list of their symbol strings.
         """
         api_name = filter_protocol.get_api_name()
-        regex_pat = filter_protocol.get_regex_filter_pattern()
+        regex_pat = filter_protocol.get_regex_pattern()
         valid_currencies = filter_protocol.get_valid_currencies()
 
         regex_pattern = self._compile_regex(api_name, regex_pat)

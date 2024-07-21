@@ -10,5 +10,5 @@ class AlpacaSymbolsFilterProtocol(SymbolFilteringProtocol):
     def get_valid_currencies(self) -> list[str]:
         return ["USD"]
     
-    def get_regex_filter_pattern(self) -> str:
+    def get_regex_pattern(self) -> str:
         return r"[-.]\S+$"
