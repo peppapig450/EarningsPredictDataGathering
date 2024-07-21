@@ -50,7 +50,7 @@ class SymbolsFilter:
 
     def filter_symbol_by_regex(
         self, compiled_regex: re.Pattern[str], symbol: UpcomingEarning
-    ) -> bool | None:
+    ) -> bool:
         """
         Checks if a symbol matches the filter based on the provided compiled regex.
 
@@ -59,11 +59,11 @@ class SymbolsFilter:
             symbol: The symbol to be checked against the filter.
 
         Returns:
-            True if the symbol matches the filter, False otherwise, or None if an error occurs.
+            True if the symbol matches the filter, False otherwise.
         """
-        if filter_out := re.match(compiled_regex, symbol.symbol):
-            return bool(filter_out)
-        return None
+        if re.match(compiled_regex, symbol.symbol):
+            return True
+        return False
 
     def filter_symbols_by_currency(
         self, valid_currencies: list[str], data: SymbolsDict
@@ -116,9 +116,8 @@ class SymbolsFilter:
             initial_symbols = list(chain.from_iterable(data.values()))
 
         for earning in initial_symbols:
-            if filtering := self.filter_symbol_by_regex(regex_pattern, earning):
-                if not filtering and filtering is not None:
-                    filtered_symbols.append(earning)
-                    symbol_strings.append(earning.symbol)
+            if not self.filter_symbol_by_regex(regex_pattern, earning):
+                filtered_symbols.append(earning)
+                symbol_strings.append(earning.symbol)
 
         return filtered_symbols, symbol_strings
