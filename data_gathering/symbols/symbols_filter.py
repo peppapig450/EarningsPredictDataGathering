@@ -119,5 +119,7 @@ class SymbolsFilter:
             if not self.filter_symbol_by_regex(regex_pattern, earning):
                 filtered_symbols.append(earning)
                 symbol_strings.append(earning.symbol)
+            else:
+                print(f"{earning.symbol}")
 
         return filtered_symbols, symbol_strings
