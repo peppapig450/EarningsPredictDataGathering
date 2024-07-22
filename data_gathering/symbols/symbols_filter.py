@@ -61,7 +61,7 @@ class SymbolsFilter:
         Returns:
             True if the symbol matches the filter, False otherwise.
         """
-        if re.match(compiled_regex, symbol.symbol):
+        if re.search(compiled_regex, symbol.symbol):
             return True
         return False
 
@@ -105,7 +105,6 @@ class SymbolsFilter:
         valid_currencies = filter_protocol.get_valid_currencies()
 
         regex_pattern = self._compile_regex(api_name, regex_pat)
-
         filtered_symbols: list[UpcomingEarning] = []
         symbol_strings: list[str] = []
 
