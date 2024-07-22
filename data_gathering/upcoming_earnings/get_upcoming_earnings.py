@@ -4,7 +4,7 @@ from csv import DictReader
 from csv import Error as CsvError
 from datetime import date, datetime
 from io import StringIO
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING
 
 import requests
 
@@ -69,7 +69,7 @@ class UpcomingEarningsGatherer:
     
     def get_upcoming_earnings_list(
         self, to_date: str, timeout: int = 20
-    ) -> Sequence[UpcomingEarning]:
+    ) -> list[UpcomingEarning]:
         """
         Retrieve a list of upcoming earnings reports.
 
@@ -106,7 +106,7 @@ class UpcomingEarningsGatherer:
             csv_data = StringIO(response.text)
             reader = DictReader(csv_data)
 
-            upcoming_earnings_list: Sequence[UpcomingEarning] = []
+            upcoming_earnings_list: list[UpcomingEarning] = []
             for row in reader:
                 # Suppress the error to ignore it, as it's non-critical and is already logged
                 with suppress(UpcomingEarningCreationError):

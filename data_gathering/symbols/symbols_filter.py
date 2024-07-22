@@ -21,7 +21,7 @@ class SymbolsFilter:
     --------
     _compile_regex(api_name: str, regex_pattern: str) -> re.Pattern[str]
         Compiles and stores the regex pattern for a given API if not already compiled.
-    filter_symbol_by_regex(compiled_regex: re.Pattern[str], symbol: UpcomingEarning) -> bool | None
+    filter_symbol_by_regex(compiled_regex: re.Pattern[str], symbol: UpcomingEarning) -> bool
         Checks if a symbol matches the filter based on the provided compiled regex.
     filter_symbols_by_currency(valid_currencies: list[str], data: SymbolsDict) -> list[UpcomingEarning]
         Filters symbols based on valid currencies and returns a list of matching symbols.
