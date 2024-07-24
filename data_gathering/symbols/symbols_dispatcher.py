@@ -1,7 +1,15 @@
 from collections import defaultdict
-from ..upcoming_earnings import UpcomingEarning
+from typing import TypedDict
+
 from ..protocols import SymbolFilteringProtocol
+from ..upcoming_earnings import UpcomingEarning
 from .symbols_filter import SymbolsFilter
+
+
+class SymbolsDict(TypedDict):
+    dataclass: list[UpcomingEarning]
+    strings: list[str]
+
 
 class SymbolsDispatcher:
     """
@@ -23,7 +31,8 @@ class SymbolsDispatcher:
     get_symbols(filter_protocol: SymbolFilteringProtocol) -> dict[str, list[UpcomingEarning] | list[str]]
         Retrieves and filters symbols according to the provided filtering protocol.
     """
-    filtered_symbols_cache: dict[str, dict[str, list[UpcomingEarning] | list[str]]]
+
+    filtered_symbols_cache: dict[str, SymbolsDict]
 
     def __init__(self):
         self.symbols: defaultdict[str, list[UpcomingEarning]] = defaultdict(list)
@@ -56,13 +65,15 @@ class SymbolsDispatcher:
         if api_name in self.filtered_symbols_cache:
             return self.filtered_symbols_cache[api_name]
 
-        earnings_list, earnings_string_list = self.filter.get_filtered_symbols(filter_protocol, self.symbols)
-        
-        api_symbols: dict[str, list[UpcomingEarning] | list[str]] = {
-            "as_dataclass": earnings_list,
-            "as_str": earnings_string_list
+        earnings_list, earnings_string_list = self.filter.get_filtered_symbols(
+            filter_protocol, self.symbols
+        )
+
+        api_symbols: SymbolsDict = {
+            "dataclass": earnings_list,
+            "strings": earnings_string_list,
         }
-        
+
         self.filtered_symbols_cache[api_name] = api_symbols
-        
+
         return api_symbols

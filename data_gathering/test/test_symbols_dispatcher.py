@@ -65,13 +65,13 @@ class TestSymbolsDispatcher(SymbolsDistributionTest):
 
         # First call, should filter and cache
         result = symbols_dispatcher.get_symbols(filter_protocol)
-        assert "as_dataclass" in result
-        assert "as_str" in result
+        assert "dataclass" in result
+        assert "strings" in result
 
         # Second call, should use cache
         result = symbols_dispatcher.get_symbols(filter_protocol)
-        assert result["as_dataclass"] == [upcoming_earnings[0]]
-        assert result["as_str"] == ["AAPL"]
+        assert result["dataclass"] == [upcoming_earnings[0]]
+        assert result["strings"] == ["AAPL"]
 
     def test_get_symbols_no_cache(
         self, symbols_dispatcher, upcoming_earnings, filter_protocol
@@ -80,10 +80,10 @@ class TestSymbolsDispatcher(SymbolsDistributionTest):
 
         result = symbols_dispatcher.get_symbols(filter_protocol)
 
-        assert "as_dataclass" in result
-        assert "as_str" in result
-        assert result["as_dataclass"] == [upcoming_earnings[0]]
-        assert result["as_str"] == ["AAPL"]
+        assert "dataclass" in result
+        assert "strings" in result
+        assert result["dataclass"] == [upcoming_earnings[0]]
+        assert result["strings"] == ["AAPL"]
 
 
 class TestSymbolsFilter(SymbolsDistributionTest):
