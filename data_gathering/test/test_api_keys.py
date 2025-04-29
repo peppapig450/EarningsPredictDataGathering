@@ -1,7 +1,7 @@
 import os
 import pytest
-
-from data_gathering.config.api_keys import APIKeys
+import configparser
+from data_gathering.config.api_keys import APIKeys, APIService
 
 
 @pytest.fixture
@@ -24,12 +24,14 @@ def config_file(tmp_path):
 
 
 def test_from_config_file(config_file):
-    api_keys = APIKeys.from_config_file(config_file)
-    assert api_keys.fmp_api_key == "test_fmp_api_key"
-    assert api_keys.finnhub_api_key == "test_finnhub_api_key"
-    assert api_keys.alpha_vantage_api_key == "test_alpha_vantage_api_key"
-    assert api_keys.apca_key_id == "test_apca_key_id"
-    assert api_keys.apca_api_secret_key == "test_apca_api_secret_key"
+    api_keys = APIKeys(load_from="config", config_file=config_file)
+    assert api_keys.get_key(APIService.FMP) == "test_fmp_api_key"
+    assert api_keys.get_key(APIService.FINNHUB) == "test_finnhub_api_key"
+    assert api_keys.get_key(APIService.ALPHA_VANTAGE) == "test_alpha_vantage_api_key"
+    assert api_keys.get_key(APIService.ALPACA) == (
+        "test_apca_key_id",
+        "test_apca_api_secret_key",
+    )
 
 
 @pytest.mark.parametrize(
@@ -47,9 +49,11 @@ def test_from_config_file(config_file):
 def test_from_environment_variables(env_vars, monkeypatch):
     for key, value in env_vars.items():
         monkeypatch.setenv(key, value)
-    api_keys = APIKeys.from_environment_variables()
-    assert api_keys.fmp_api_key == "test_fmp_api_key"
-    assert api_keys.finnhub_api_key == "test_finnhub_api_key"
-    assert api_keys.alpha_vantage_api_key == "test_alpha_vantage_api_key"
-    assert api_keys.apca_key_id == "test_apca_key_id"
-    assert api_keys.apca_api_secret_key == "test_apca_api_secret_key"
+    api_keys = APIKeys(load_from="env")
+    assert api_keys.get_key(APIService.FMP) == "test_fmp_api_key"
+    assert api_keys.get_key(APIService.FINNHUB) == "test_finnhub_api_key"
+    assert api_keys.get_key(APIService.ALPHA_VANTAGE) == "test_alpha_vantage_api_key"
+    assert api_keys.get_key(APIService.ALPACA) == (
+        "test_apca_key_id",
+        "test_apca_api_secret_key",
+    )

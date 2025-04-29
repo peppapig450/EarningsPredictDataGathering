@@ -1,0 +1,82 @@
+@startuml
+
+title Metaclass creates Task Classes
+
+skinparam classBackgroundColor LightGreen
+skinparam stereotypeBackgroundColor LightBlue
+
+class Enum <<abstract>> {
+  + auto() : str
+}
+
+enum RunState extends Enum {
+  RUN
+  DONE
+}
+
+enum TaskType extends Enum {
+  IO
+  CPU
+}
+
+enum DataCategory extends Enum {
+  HISTORICAL "Historical Price Data"
+  FUNDAMENTALS "Fundamental Metrics"
+  ANALYST_ESTIMATES "Analyst Estimates"
+  MARKET_SENTIMENT "Market Sentiment"
+  INDUSTRY_SECTOR "Industry & Sector"
+  COMPANY_NEWS "Company News"
+  VOLATILITY "Volatility"
+  EARNINGS_TRANSCRIPTS "Earnings Transcripts"
+
+  {get_next_category}
+}
+
+metaclass TaskMeta {
+  + get_data_processor(data_category: DataCategory) : Task
+  {abstract} + __call__(...) : Task
+}
+note top of TaskMeta
+    This metaclass creates concrete Task classes based on data_category.
+end note
+
+class AbstractTask {
+  {abstract} + run_io() : async
+  {abstract} + run_cpu() : void
+}
+
+class Task extends AbstractTask {
+  <<uses>> TaskMeta
+
+  task_id : string
+  task_type : TaskType
+  data_category : DataCategory
+  state : RunState
+  io_result : any
+  cpu_result : any
+  data_processor_class : Task
+  symbols : list<string>
+
+  {abstract} + __init__(...)
+}
+
+note right of Task
+  Concrete Task class created by TaskMeta.
+end note
+
+class HistoricalDataTask extends Task
+class FundamentalMetricsTask extends Task
+class AnalysistEstimatesTask extends Task
+class MarketSentimentIndicatorsTask extends Task
+class IndustryAndSectorDataTask extends Task
+class CompanyNewsAndEventsTask extends Task
+class VolatilityTradingVolumeTask extends Task
+class EarningsTranscriptsTask extends Task
+
+TaskMeta --* Task : creates
+
+RunState --* Task : used by
+TaskType --* Task : used by
+DataCategory --* Task : used by
+
+@enduml

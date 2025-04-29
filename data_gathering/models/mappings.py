@@ -1,6 +1,6 @@
-from typing import Dict
+# TODO: move mapping to relavant module
 
-historical_data_mapping: Dict[str, str] = {
+historical_data_mapping: dict[str, str] = {
     "t": "timestamp",
     "o": "open",
     "h": "high",
